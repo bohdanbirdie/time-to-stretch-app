@@ -37,12 +37,17 @@ class AppState: ObservableObject {
     
     // Timer state tracking
     @Published var isTimerActive = false
+    @Published var currentTimerValue: TimeInterval = 0
+    @Published var isBreakActive = false
     
     // Pending settings change that needs confirmation
     @Published var pendingSettingsChange: PendingSettingsChange?
     
     // Publisher for settings changes
     let settingsChangedPublisher = PassthroughSubject<TimerSettings, Never>()
+    
+    // Publisher for timer updates
+    let timerUpdatePublisher = PassthroughSubject<TimeInterval, Never>()
     
     // UserDefaults keys
     private let timerSettingsKey = "timerSettings"
@@ -179,10 +184,11 @@ class StatusBarController {
     private var popover: NSPopover
     var appState = AppState()
     private var settingsManager: SettingsWindowManager!
+    private var timerUpdateSubscription: AnyCancellable?
     
     init() {
         statusBar = NSStatusBar.system
-        statusItem = statusBar.statusItem(withLength: NSStatusItem.squareLength)
+        statusItem = statusBar.statusItem(withLength: NSStatusItem.variableLength)
         
         // Create popover first
         popover = NSPopover()
@@ -197,13 +203,74 @@ class StatusBarController {
         // Initialize settings manager with appState
         settingsManager = SettingsWindowManager(appState: appState)
         
-        // Configure button
+        // Configure button with just the icon initially
         if let button = statusItem.button {
             button.image = NSImage(
                 systemSymbolName: "timer",
                 accessibilityDescription: "Timer")
+            button.imagePosition = .imageLeft  // Place image on the left
             button.target = self
             button.action = #selector(togglePopover)
+        }
+        
+        // Subscribe to timer updates
+        setupTimerUpdates()
+    }
+    
+    private func setupTimerUpdates() {
+        // Create a subscription to timer updates
+        timerUpdateSubscription = appState.timerUpdatePublisher.sink { [weak self] timerValue in
+            self?.updateMenuBarTimer(timerValue: timerValue)
+        }
+    }
+    
+    private func updateMenuBarTimer(timerValue: TimeInterval) {
+        // Update menu bar title based on timer state
+        if appState.isTimerActive {
+            let minutes = Int(timerValue) / 60
+            let seconds = Int(timerValue) % 60
+            let timeString = String(format: "%02d:%02d", minutes, seconds)
+            
+            // Set the title with the timer value after the icon
+            if let button = statusItem.button {
+                // Use regular title with fixed width font
+                button.title = timeString
+                
+                // Set a fixed width font for the button to prevent shifting
+                let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize + 1, weight: .regular)
+                button.font = font
+                
+                button.imagePosition = .imageLeft  // Ensure image stays on the left
+                
+                // Set icon color based on timer mode
+                if appState.isBreakActive {
+                    // Green icon for break time
+                    let greenIcon = NSImage(
+                        systemSymbolName: "timer",
+                        accessibilityDescription: "Timer"
+                    )?.withSymbolConfiguration(
+                        NSImage.SymbolConfiguration(paletteColors: [.systemGreen])
+                    )
+                    button.image = greenIcon
+                } else {
+                    // Default icon for focus time
+                    button.image = NSImage(
+                        systemSymbolName: "timer",
+                        accessibilityDescription: "Timer"
+                    )
+                }
+            }
+        } else {
+            // Clear the title when timer is not running
+            if let button = statusItem.button {
+                button.title = ""
+                // Reset to default icon
+                button.image = NSImage(
+                    systemSymbolName: "timer",
+                    accessibilityDescription: "Timer"
+                )
+                button.imagePosition = .imageOnly  // Just show the icon when no timer
+            }
         }
     }
     

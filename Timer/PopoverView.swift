@@ -137,6 +137,10 @@ struct PopoverView: View {
     func startTimer() {
         timerRunning = true
         appState.isTimerActive = true
+        appState.isBreakActive = isBreakActive
+        
+        // Update the current timer value in AppState
+        updateAppStateTimerValue()
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if !isBreakActive {
@@ -147,7 +151,11 @@ struct PopoverView: View {
                     // When focus timer reaches zero, immediately switch to break
                     if focusRemainingTime == 0 {
                         isBreakActive = true
+                        appState.isBreakActive = true
                     }
+                    
+                    // Update the current timer value in AppState
+                    updateAppStateTimerValue()
                 }
             } else {
                 // Break timer is active
@@ -159,6 +167,9 @@ struct PopoverView: View {
                         stopTimer()
                         resetTimers()
                     }
+                    
+                    // Update the current timer value in AppState
+                    updateAppStateTimerValue()
                 }
             }
         }
@@ -169,6 +180,10 @@ struct PopoverView: View {
         appState.isTimerActive = false
         timer?.invalidate()
         timer = nil
+        
+        // Clear the timer value in AppState
+        appState.currentTimerValue = 0
+        appState.timerUpdatePublisher.send(0)
     }
     
     func resetTimers() {
@@ -183,6 +198,13 @@ struct PopoverView: View {
         focusDuration = TimeInterval(focusMinutes * 60)
         breakDuration = TimeInterval(breakMinutes * 60 + breakSeconds)
         resetTimers()
+    }
+    
+    // Helper method to update the AppState with current timer value
+    private func updateAppStateTimerValue() {
+        let currentValue = isBreakActive ? breakRemainingTime : focusRemainingTime
+        appState.currentTimerValue = currentValue
+        appState.timerUpdatePublisher.send(currentValue)
     }
 }
 
