@@ -79,6 +79,7 @@ struct PopoverView: View {
                         .foregroundColor(.gray)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .keyboardShortcut(",", modifiers: .command)
                 
                 Spacer()
                 
@@ -95,15 +96,6 @@ struct PopoverView: View {
             .padding(.bottom, 10),
             alignment: .bottom
         )
-        .onDisappear {
-            // Ensure timer stops when view disappears
-            if timerRunning {
-                stopTimer()
-            }
-            
-            // Cancel subscription
-            settingsSubscription?.cancel()
-        }
         .onAppear {
             // Initialize with current settings
             updateDurations(
@@ -123,6 +115,15 @@ struct PopoverView: View {
                         breakSeconds: newSettings.breakSeconds
                     )
                 }
+        }
+        .onDisappear {
+            // Ensure timer stops when view disappears
+            if timerRunning {
+                stopTimer()
+            }
+            
+            // Cancel subscription
+            settingsSubscription?.cancel()
         }
     }
     
