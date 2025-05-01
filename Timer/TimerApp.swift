@@ -127,6 +127,7 @@ class SettingsWindowManager {
         // If window already exists, just bring it to front
         if let window = window {
             window.makeKeyAndOrderFront(nil)
+            window.level = .floating
             NSApp.activate(ignoringOtherApps: true)
             return
         }
@@ -142,6 +143,7 @@ class SettingsWindowManager {
         window.title = "Timer Settings"
         window.center()
         window.isReleasedWhenClosed = false
+        window.level = .floating
         
         // Create a binding that closes the window when set to false
         let isPresented = Binding<Bool>(
@@ -206,6 +208,7 @@ class StatusBarController {
     }
     
     func openSettings() {
+        // Open settings without closing the popover
         settingsManager.showSettings()
     }
     
@@ -216,6 +219,13 @@ class StatusBarController {
             if let button = statusItem.button {
                 // Use direct presentation without animation context
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+                
+                // Make the popover's view the first responder to ensure it has focus
+                if let contentViewController = popover.contentViewController,
+                   let window = contentViewController.view.window {
+                    window.makeFirstResponder(contentViewController.view)
+                    window.makeKey()
+                }
             }
         }
     }
