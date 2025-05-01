@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import UserNotifications
 
 struct PopoverView: View {
     // Environment object to access the AppState
@@ -152,6 +153,9 @@ struct PopoverView: View {
                     if focusRemainingTime == 0 {
                         isBreakActive = true
                         appState.isBreakActive = true
+                        
+                        // Send notification when focus timer ends
+                        sendFocusEndedNotification()
                     }
                     
                     // Update the current timer value in AppState
@@ -166,6 +170,9 @@ struct PopoverView: View {
                     if breakRemainingTime == 0 {
                         stopTimer()
                         resetTimers()
+                        
+                        // Send notification when break timer ends
+                        sendBreakEndedNotification()
                     }
                     
                     // Update the current timer value in AppState
@@ -205,6 +212,50 @@ struct PopoverView: View {
         let currentValue = isBreakActive ? breakRemainingTime : focusRemainingTime
         appState.currentTimerValue = currentValue
         appState.timerUpdatePublisher.send(currentValue)
+    }
+    
+    // Helper method to send a notification when focus timer ends
+    private func sendFocusEndedNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "Focus Time Ended"
+        content.body = "Time for a break! Take 5 minutes to relax."
+        content.sound = UNNotificationSound.default
+        
+        // Show this notification immediately
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: nil
+        )
+        
+        // Add the notification request
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error sending notification: \(error)")
+            }
+        }
+    }
+    
+    // Helper method to send a notification when break timer ends
+    private func sendBreakEndedNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "Break Time Ended"
+        content.body = "Time to focus again!"
+        content.sound = UNNotificationSound.default
+        
+        // Show this notification immediately
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: nil
+        )
+        
+        // Add the notification request
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error sending notification: \(error)")
+            }
+        }
     }
 }
 
