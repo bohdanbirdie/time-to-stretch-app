@@ -189,9 +189,9 @@ struct PopoverView: View {
         timer?.invalidate()
         timer = nil
         
-        // Clear the timer value in AppState
-        appState.currentTimerValue = 0
-        appState.timerUpdatePublisher.send(0)
+        // Update the current timer value in AppState without resetting to 0
+        // This ensures the time remains visible and in sync when paused
+        updateAppStateTimerValue()
     }
     
     func resetTimers() {

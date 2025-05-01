@@ -226,24 +226,27 @@ class StatusBarController {
     }
     
     private func updateMenuBarTimer(timerValue: TimeInterval) {
-        // Update menu bar title based on timer state
-        if appState.isTimerActive {
-            let minutes = Int(timerValue) / 60
-            let seconds = Int(timerValue) % 60
-            let timeString = String(format: "%02d:%02d", minutes, seconds)
+        // Get the minutes and seconds
+        let minutes = Int(timerValue) / 60
+        let seconds = Int(timerValue) % 60
+        
+        // Format the time string
+        let timeString = String(format: "%02d:%02d", minutes, seconds)
+        
+        // Update the menu bar
+        if let button = statusItem.button {
+            // Always show the time string
+            button.title = timeString
             
-            // Set the title with the timer value after the icon
-            if let button = statusItem.button {
-                // Use regular title with fixed width font
-                button.title = timeString
-                
-                // Set a fixed width font for the button to prevent shifting
-                let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize + 1, weight: .regular)
-                button.font = font
-                
-                button.imagePosition = .imageLeft  // Ensure image stays on the left
-                
-                // Set icon color based on timer mode
+            // Use a monospaced font to prevent shifting
+            let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize + 1, weight: .regular)
+            button.font = font
+            
+            // Always keep the image on the left
+            button.imagePosition = .imageLeft
+            
+            // Set icon color based on timer mode
+            if appState.isTimerActive {
                 if appState.isBreakActive {
                     // Green icon for break time
                     let greenIcon = NSImage(
@@ -260,17 +263,15 @@ class StatusBarController {
                         accessibilityDescription: "Timer"
                     )
                 }
-            }
-        } else {
-            // Clear the title when timer is not running
-            if let button = statusItem.button {
-                button.title = ""
-                // Reset to default icon
-                button.image = NSImage(
+            } else {
+                // Gray icon when timer is not active
+                let grayIcon = NSImage(
                     systemSymbolName: "timer",
                     accessibilityDescription: "Timer"
+                )?.withSymbolConfiguration(
+                    NSImage.SymbolConfiguration(paletteColors: [.secondaryLabelColor])
                 )
-                button.imagePosition = .imageOnly  // Just show the icon when no timer
+                button.image = grayIcon
             }
         }
     }
