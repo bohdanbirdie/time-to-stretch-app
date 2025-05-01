@@ -23,10 +23,23 @@ struct TimerSettings: Codable {
     )
 }
 
+// Pending settings change that needs confirmation
+struct PendingSettingsChange {
+    var focusMinutes: Int
+    var breakMinutes: Int
+    var breakSeconds: Int
+}
+
 // App state class to provide access to StatusBarController from SwiftUI views
 class AppState: ObservableObject {
     weak var statusBarController: StatusBarController?
     @Published var timerSettings: TimerSettings
+    
+    // Timer state tracking
+    @Published var isTimerActive = false
+    
+    // Pending settings change that needs confirmation
+    @Published var pendingSettingsChange: PendingSettingsChange?
     
     // Publisher for settings changes
     let settingsChangedPublisher = PassthroughSubject<TimerSettings, Never>()
@@ -48,6 +61,43 @@ class AppState: ObservableObject {
         statusBarController?.openSettings()
     }
     
+    // This is called when settings are changed in the UI
+    func prepareSettingsUpdate(focusMinutes: Int, breakMinutes: Int, breakSeconds: Int) {
+        // If timer is active, store as pending change that needs confirmation
+        if isTimerActive {
+            pendingSettingsChange = PendingSettingsChange(
+                focusMinutes: focusMinutes,
+                breakMinutes: breakMinutes,
+                breakSeconds: breakSeconds
+            )
+        } else {
+            // If timer is not active, apply immediately
+            updateTimerSettings(
+                focusMinutes: focusMinutes,
+                breakMinutes: breakMinutes,
+                breakSeconds: breakSeconds
+            )
+        }
+    }
+    
+    // Confirm pending settings change
+    func confirmPendingSettingsChange() {
+        if let pending = pendingSettingsChange {
+            updateTimerSettings(
+                focusMinutes: pending.focusMinutes,
+                breakMinutes: pending.breakMinutes,
+                breakSeconds: pending.breakSeconds
+            )
+            pendingSettingsChange = nil
+        }
+    }
+    
+    // Cancel pending settings change
+    func cancelPendingSettingsChange() {
+        pendingSettingsChange = nil
+    }
+    
+    // Actually update the settings
     func updateTimerSettings(focusMinutes: Int, breakMinutes: Int, breakSeconds: Int) {
         timerSettings = TimerSettings(focusMinutes: focusMinutes, breakMinutes: breakMinutes, breakSeconds: breakSeconds)
         saveSettings()

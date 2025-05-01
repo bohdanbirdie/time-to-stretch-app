@@ -59,6 +59,40 @@ struct SettingsView: View {
             breakMinutes = appState.timerSettings.breakMinutes
             breakSeconds = appState.timerSettings.breakSeconds
         }
+        // Show confirmation alert when there's a pending settings change
+        .sheet(isPresented: Binding<Bool>(
+            get: { appState.pendingSettingsChange != nil },
+            set: { if !$0 { appState.cancelPendingSettingsChange() } }
+        )) {
+            confirmationView
+        }
+    }
+    
+    // Confirmation view for settings changes while timer is active
+    private var confirmationView: some View {
+        VStack(spacing: 20) {
+            Text("Reset Timer?")
+                .font(.headline)
+                .padding(.top, 20)
+            
+            Text("Changing timer settings will reset your current timer. Are you sure you want to continue?")
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+            
+            HStack(spacing: 20) {
+                Button("Cancel") {
+                    appState.cancelPendingSettingsChange()
+                }
+                .buttonStyle(BorderedButtonStyle())
+                
+                Button("Reset Timer") {
+                    appState.confirmPendingSettingsChange()
+                }
+                .buttonStyle(BorderedProminentButtonStyle())
+            }
+            .padding(.bottom, 20)
+        }
+        .frame(width: 350)
     }
     
     // General Settings Tab
@@ -197,7 +231,7 @@ struct SettingsView: View {
         let adjustedBreakSeconds = (breakMinutes == 0 && breakSeconds == 0) ? 30 : breakSeconds
         
         // Update settings in AppState
-        appState.updateTimerSettings(
+        appState.prepareSettingsUpdate(
             focusMinutes: adjustedFocusMinutes,
             breakMinutes: adjustedBreakMinutes,
             breakSeconds: adjustedBreakSeconds

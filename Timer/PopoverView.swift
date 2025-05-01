@@ -136,6 +136,7 @@ struct PopoverView: View {
     
     func startTimer() {
         timerRunning = true
+        appState.isTimerActive = true
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if !isBreakActive {
@@ -165,6 +166,7 @@ struct PopoverView: View {
     
     func stopTimer() {
         timerRunning = false
+        appState.isTimerActive = false
         timer?.invalidate()
         timer = nil
     }
