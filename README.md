@@ -1,10 +1,14 @@
 # Time to stretch
 
 <p align="center">
-  <img src="Timer/Assets.xcassets/AppIcon.appiconset/256-mac.png" alt="Time to stretch App Icon" width="128">
+  <img src="Timer/Assets.xcassets/AppIcon.appiconset/512-mac.png" alt="Time to stretch App Icon" width="256">
 </p>
 
-A customizable macOS menubar timer app designed to remind you to take breaks and stretch regularly. Inspired by the Pomodoro Technique, it helps you stay focused while maintaining your physical well-being.
+<h4 align="center">A customizable macOS menubar timer app designed to remind you to take breaks and stretch regularly.</h4>
+
+<p align="center">
+  Inspired by the Pomodoro Technique, it helps you stay focused while maintaining your physical well-being.
+</p>
 
 ## Features
 
@@ -18,7 +22,27 @@ A customizable macOS menubar timer app designed to remind you to take breaks and
 
 ## Screenshots
 
-*[Screenshots to be added]*
+<p align="center">
+  <img src="screenshots/timer.gif" alt="Time to stretch in action" width="600"><br>
+  <em>Time to stretch app in action</em>
+</p>
+
+### Settings Screens
+
+<p align="center">
+  <img src="screenshots/setting_1.png" alt="App Configuration Settings" width="600"><br>
+  <em>App Configuration Settings</em>
+</p>
+
+<p align="center">
+  <img src="screenshots/settings_2.png" alt="Intervals Settings" width="600"><br>
+  <em>Intervals Settings with Presets</em>
+</p>
+
+<p align="center">
+  <img src="screenshots/settings_3.png" alt="Keyboard Shortcuts Settings" width="600"><br>
+  <em>Keyboard Shortcuts Settings</em>
+</p>
 
 ## Installation
 
