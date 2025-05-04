@@ -25,6 +25,15 @@ class AppState: ObservableObject {
     @Published var timerState: TimerState = .inactive
     @Published var currentTimerValue: TimeInterval = 0
     
+    // Timer durations and remaining times
+    @Published var focusRemainingTime: TimeInterval = 0
+    @Published var breakRemainingTime: TimeInterval = 0
+    @Published var focusDuration: TimeInterval = 0
+    @Published var breakDuration: TimeInterval = 0
+    
+    // Timer instance (needs to be optional since it's a class)
+    @Published var timer: Timer? = nil
+    
     // Pending settings change that needs confirmation
     @Published var pendingSettingsChange: PendingSettingsChange?
     
@@ -45,6 +54,24 @@ class AppState: ObservableObject {
         } else {
             self.timerSettings = TimerSettings.defaultSettings
         }
+        
+        // Initialize timer durations from settings
+        updateTimerDurations()
+    }
+    
+    // Initialize timer durations based on settings
+    private func updateTimerDurations() {
+        focusDuration = TimeInterval(timerSettings.focusMinutes * 60)
+        breakDuration = TimeInterval(timerSettings.breakMinutes * 60 + timerSettings.breakSeconds)
+        
+        // Reset remaining times to full duration
+        resetTimerValues()
+    }
+    
+    // Reset timer values to full duration
+    func resetTimerValues() {
+        focusRemainingTime = focusDuration
+        breakRemainingTime = breakDuration
     }
     
     func openSettings() {
@@ -91,6 +118,9 @@ class AppState: ObservableObject {
     func updateTimerSettings(focusMinutes: Int, breakMinutes: Int, breakSeconds: Int) {
         timerSettings = TimerSettings(focusMinutes: focusMinutes, breakMinutes: breakMinutes, breakSeconds: breakSeconds)
         saveSettings()
+        
+        // Update timer durations based on new settings
+        updateTimerDurations()
         
         // Notify subscribers that settings have changed
         settingsChangedPublisher.send(timerSettings)

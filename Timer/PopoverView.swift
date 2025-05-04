@@ -13,19 +13,6 @@ struct PopoverView: View {
     // Environment object to access the AppState
     @EnvironmentObject var appState: AppState
     
-    // Timer states
-    @State private var timerRunning = false
-    @State private var focusRemainingTime: TimeInterval = 60 * 60 // 60 minutes
-    @State private var breakRemainingTime: TimeInterval = 5 * 60 // 5 minutes
-    @State private var isBreakActive = false // Tracks which timer is currently active
-    
-    // Timer settings
-    @State private var focusDuration: TimeInterval = 60 * 60 // 60 minutes
-    @State private var breakDuration: TimeInterval = 5 * 60 // 5 minutes
-    
-    // Timer instance
-    @State private var timer: Timer? = nil
-    
     // Subscription to settings changes
     @State private var settingsSubscription: AnyCancellable?
     
@@ -38,35 +25,35 @@ struct PopoverView: View {
                 VStack(spacing: 5) {
                     Text("Focus")
                         .font(.headline)
-                        .foregroundColor(isBreakActive ? .secondary : .primary)
+                        .foregroundColor(appState.timerState == .breakActive ? .secondary : .primary)
                     
                     TimeDisplay(
-                        minutes: Int(focusRemainingTime) / 60,
-                        seconds: Int(focusRemainingTime) % 60
+                        minutes: Int(appState.focusRemainingTime) / 60,
+                        seconds: Int(appState.focusRemainingTime) % 60
                     )
-                    .opacity(isBreakActive ? 0.5 : 1.0)
+                    .opacity(appState.timerState == .breakActive ? 0.5 : 1.0)
                 }
 
                 VStack(spacing: 5) {
                     Text("Break")
                         .font(.headline)
-                        .foregroundColor(isBreakActive ? .primary : .secondary)
+                        .foregroundColor(appState.timerState == .breakActive ? .primary : .secondary)
                     
                     TimeDisplay(
-                        minutes: Int(breakRemainingTime) / 60,
-                        seconds: Int(breakRemainingTime) % 60
+                        minutes: Int(appState.breakRemainingTime) / 60,
+                        seconds: Int(appState.breakRemainingTime) % 60
                     )
                     .scaleEffect(0.8)
-                    .opacity(isBreakActive ? 1.0 : 0.5)
+                    .opacity(appState.timerState == .breakActive ? 1.0 : 0.5)
                 }
             }
 
             Button(action: {
                 toggleTimer()
             }) {
-                Image(systemName: timerRunning ? "pause.fill" : "play.fill")
+                Image(systemName: appState.timerState != .inactive ? "pause.fill" : "play.fill")
                     .font(.system(size: 30, weight: .bold))
-                    .foregroundColor(timerRunning ? .orange : (isBreakActive ? .teal : .green))
+                    .foregroundColor(appState.timerState != .inactive ? .orange : (appState.timerState == .breakActive ? .teal : .green))
                     .frame(width: 60, height: 60)
             }
             .buttonStyle(PlainButtonStyle())
@@ -100,36 +87,14 @@ struct PopoverView: View {
             alignment: .bottom
         )
         .onAppear {
-            // Initialize with current settings
-            updateDurations(
-                focusMinutes: appState.timerSettings.focusMinutes,
-                breakMinutes: appState.timerSettings.breakMinutes,
-                breakSeconds: appState.timerSettings.breakSeconds
-            )
-            
-            // Subscribe to settings changes
-            settingsSubscription = appState.settingsChangedPublisher
-                .sink { newSettings in
-                    // Stop the timer and reset with new durations
-                    stopTimer()
-                    updateDurations(
-                        focusMinutes: newSettings.focusMinutes,
-                        breakMinutes: newSettings.breakMinutes,
-                        breakSeconds: newSettings.breakSeconds
-                    )
-                }
-                
             // Set up notification observers for timer controls from menu
             setupNotificationObservers()
         }
         .onDisappear {
             // Ensure timer stops when view disappears
-            if timerRunning {
+            if appState.timerState != .inactive {
                 stopTimer()
             }
-            
-            // Cancel subscription
-            settingsSubscription?.cancel()
             
             // Remove notification observers
             removeNotificationObservers()
@@ -138,7 +103,7 @@ struct PopoverView: View {
     
     // Timer control functions
     func toggleTimer() {
-        if timerRunning {
+        if appState.timerState != .inactive {
             stopTimer()
         } else {
             startTimer()
@@ -146,21 +111,20 @@ struct PopoverView: View {
     }
     
     func startTimer() {
-        timerRunning = true
-        appState.timerState = isBreakActive ? .breakActive : .focusActive
+        // Set the timer state based on which timer is active
+        appState.timerState = appState.timerState == .breakActive ? .breakActive : .focusActive
         
         // Update the current timer value in AppState
         updateAppStateTimerValue()
         
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            if !isBreakActive {
+        appState.timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            if appState.timerState == .focusActive {
                 // Focus timer is active
-                if focusRemainingTime > 0 {
-                    focusRemainingTime -= 1
+                if appState.focusRemainingTime > 0 {
+                    appState.focusRemainingTime -= 1
                     
                     // When focus timer reaches zero, immediately switch to break
-                    if focusRemainingTime == 0 {
-                        isBreakActive = true
+                    if appState.focusRemainingTime == 0 {
                         appState.timerState = .breakActive
                         
                         // Send notification when focus timer ends
@@ -170,13 +134,13 @@ struct PopoverView: View {
                     // Update the current timer value in AppState
                     updateAppStateTimerValue()
                 }
-            } else {
+            } else if appState.timerState == .breakActive {
                 // Break timer is active
-                if breakRemainingTime > 0 {
-                    breakRemainingTime -= 1
+                if appState.breakRemainingTime > 0 {
+                    appState.breakRemainingTime -= 1
                     
                     // When break timer reaches zero, immediately reset and stop
-                    if breakRemainingTime == 0 {
+                    if appState.breakRemainingTime == 0 {
                         stopTimer()
                         resetTimers()
                         
@@ -192,10 +156,9 @@ struct PopoverView: View {
     }
     
     func stopTimer() {
-        timerRunning = false
         appState.timerState = .inactive
-        timer?.invalidate()
-        timer = nil
+        appState.timer?.invalidate()
+        appState.timer = nil
         
         // Update the current timer value in AppState without resetting to 0
         // This ensures the time remains visible and in sync when paused
@@ -204,23 +167,22 @@ struct PopoverView: View {
     
     func resetTimers() {
         stopTimer()
-        isBreakActive = false
-        focusRemainingTime = focusDuration
-        breakRemainingTime = breakDuration
+        appState.resetTimerValues()
+        
+        // Update the current timer value in AppState
+        updateAppStateTimerValue()
     }
     
-    // Update duration settings and reset timers
-    func updateDurations(focusMinutes: Int, breakMinutes: Int, breakSeconds: Int = 0) {
-        focusDuration = TimeInterval(focusMinutes * 60)
-        breakDuration = TimeInterval(breakMinutes * 60 + breakSeconds)
-        resetTimers()
-    }
-    
-    // Helper method to update the AppState with current timer value
     private func updateAppStateTimerValue() {
-        let currentValue = isBreakActive ? breakRemainingTime : focusRemainingTime
-        appState.currentTimerValue = currentValue
-        appState.timerUpdatePublisher.send(currentValue)
+        // Update the current timer value based on which timer is active
+        if appState.timerState == .breakActive {
+            appState.currentTimerValue = appState.breakRemainingTime
+        } else {
+            appState.currentTimerValue = appState.focusRemainingTime
+        }
+        
+        // Publish the timer update
+        appState.timerUpdatePublisher.send(appState.currentTimerValue)
     }
     
     // Helper method to send a notification when focus timer ends
@@ -279,7 +241,7 @@ struct PopoverView: View {
             object: nil,
             queue: .main
         ) { [self] _ in
-            if !self.timerRunning {
+            if appState.timerState == .inactive {
                 self.startTimer()
             }
         }
@@ -290,7 +252,7 @@ struct PopoverView: View {
             object: nil,
             queue: .main
         ) { [self] _ in
-            if self.timerRunning {
+            if appState.timerState != .inactive {
                 self.stopTimer()
             }
         }
