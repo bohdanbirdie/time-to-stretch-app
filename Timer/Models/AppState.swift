@@ -42,6 +42,13 @@ enum AppearanceMode: String, CaseIterable, Identifiable, Codable {
 class AppState: ObservableObject {
     weak var statusBarController: StatusBarController?
     @Published var timerSettings: TimerSettings
+    @Published var shortcutSettings: ShortcutSettings {
+        didSet {
+            saveShortcutSettings()
+            // Post notification for shortcut settings change
+            NotificationCenter.default.post(name: Notification.Name("ShortcutSettingsDidChange"), object: nil)
+        }
+    }
     
     // Timer manager
     lazy var timerManager: TimerManager = {
@@ -112,14 +119,23 @@ class AppState: ObservableObject {
     private let appearanceModeKey = "appearanceMode"
     private let showTimerTextInMenuBarKey = "showTimerTextInMenuBar"
     private let launchAtStartupKey = "launchAtStartup"
+    private let shortcutSettingsKey = "shortcutSettings"
     
     init() {
-        // Load settings from UserDefaults or use defaults
+        // Initialize with default values first
+        self.timerSettings = TimerSettings.defaultSettings
+        self.shortcutSettings = ShortcutSettings.defaultSettings
+        
+        // Then load from UserDefaults if available
         if let savedSettingsData = UserDefaults.standard.data(forKey: timerSettingsKey),
            let decodedSettings = try? JSONDecoder().decode(TimerSettings.self, from: savedSettingsData) {
             self.timerSettings = decodedSettings
-        } else {
-            self.timerSettings = TimerSettings.defaultSettings
+        }
+        
+        // Load shortcut settings
+        if let savedShortcutData = UserDefaults.standard.data(forKey: shortcutSettingsKey),
+           let decodedShortcuts = try? JSONDecoder().decode(ShortcutSettings.self, from: savedShortcutData) {
+            self.shortcutSettings = decodedShortcuts
         }
         
         // Initialize timer durations from settings
@@ -298,6 +314,13 @@ class AppState: ObservableObject {
         } else {
             // For older macOS versions, just inform in debug console
             print("Launch at startup is only supported on macOS 13 and later")
+        }
+    }
+    
+    // Save shortcut settings to UserDefaults
+    private func saveShortcutSettings() {
+        if let encodedData = try? JSONEncoder().encode(shortcutSettings) {
+            UserDefaults.standard.set(encodedData, forKey: shortcutSettingsKey)
         }
     }
 }

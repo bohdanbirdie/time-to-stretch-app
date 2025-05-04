@@ -10,6 +10,7 @@ import UserNotifications
 
 class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     var statusBarController: StatusBarController?
+    var globalShortcutManager: GlobalShortcutManager?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Request notification permissions
@@ -23,6 +24,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         
         // Apply initial appearance mode
         applyCurrentAppearanceMode()
+        
+        // Initialize global shortcut manager
+        if let appState = statusBarController?.appState {
+            globalShortcutManager = GlobalShortcutManager(appState: appState)
+        }
     }
     
     // Request permission to send notifications

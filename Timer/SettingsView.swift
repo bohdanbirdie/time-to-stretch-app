@@ -19,7 +19,7 @@ struct SettingsView: View {
     
     // Tab selection state
     @State private var selectedTab: String = "App configuration"
-    private let tabs = ["App configuration", "Intervals"]
+    private let tabs = ["App configuration", "Intervals", "Shortcuts"]
     
     // Initialize state values
     init(isPresented: Binding<Bool>) {
@@ -45,8 +45,10 @@ struct SettingsView: View {
             ScrollView {
                 if selectedTab == "App configuration" {
                     appConfigurationView
-                } else {
+                } else if selectedTab == "Intervals" {
                     intervalsView
+                } else {
+                    shortcutsView
                 }
             }
         }
@@ -65,6 +67,25 @@ struct SettingsView: View {
             set: { if !$0 { appState.cancelPendingSettingsChange() } }
         )) {
             confirmationView
+        }
+        .sheet(isPresented: $showShortcutRecorder) {
+            ShortcutRecorderModal(
+                isPresented: $showShortcutRecorder,
+                shortcut: Binding(
+                    get: { self.tempShortcut },
+                    set: { newValue in
+                        self.tempShortcut = newValue
+                        
+                        // Update the appropriate shortcut based on which one is being edited
+                        switch tempShortcutType {
+                        case .playPause:
+                            self.appState.shortcutSettings.playPauseShortcut = newValue
+                        case .resetTimer:
+                            self.appState.shortcutSettings.resetTimerShortcut = newValue
+                        }
+                    }
+                )
+            )
         }
     }
     
@@ -333,6 +354,108 @@ struct SettingsView: View {
         }
         .padding(.horizontal)
         .padding(.top, 10)
+    }
+    
+    // Shortcuts Tab
+    private var shortcutsView: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Section header
+            Text("Keyboard Shortcuts")
+                .font(.headline)
+                .padding(.bottom, 4)
+            
+            VStack(alignment: .leading, spacing: 12) {
+                // Play/Pause shortcut
+                HStack {
+                    Text("Play/Pause Timer")
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    // Display current shortcut with button style
+                    Button(action: {
+                        tempShortcutType = .playPause
+                        tempShortcut = appState.shortcutSettings.playPauseShortcut
+                        showShortcutRecorder = true
+                    }) {
+                        Text(appState.shortcutSettings.playPauseShortcut.toString().isEmpty ? "Not Set" : appState.shortcutSettings.playPauseShortcut.toString())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(NSColor.controlBackgroundColor))
+                            .cornerRadius(4)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(!appState.shortcutSettings.playPauseShortcut.isEnabled)
+                    
+                    // Toggle to enable/disable
+                    Toggle("", isOn: $appState.shortcutSettings.playPauseShortcut.isEnabled)
+                        .labelsHidden()
+                }
+                
+                // Reset Timer shortcut
+                HStack {
+                    Text("Reset Timer")
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    // Display current shortcut with button style
+                    Button(action: {
+                        tempShortcutType = .resetTimer
+                        tempShortcut = appState.shortcutSettings.resetTimerShortcut
+                        showShortcutRecorder = true
+                    }) {
+                        Text(appState.shortcutSettings.resetTimerShortcut.toString().isEmpty ? "Not Set" : appState.shortcutSettings.resetTimerShortcut.toString())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(NSColor.controlBackgroundColor))
+                            .cornerRadius(4)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(!appState.shortcutSettings.resetTimerShortcut.isEnabled)
+                    
+                    // Toggle to enable/disable
+                    Toggle("", isOn: $appState.shortcutSettings.resetTimerShortcut.isEnabled)
+                        .labelsHidden()
+                }
+            }
+            .padding(12)
+            .background(Color(NSColor.controlBackgroundColor))
+            .cornerRadius(8)
+            
+            // Note about shortcuts
+            Text("Note: Changes to shortcuts take effect immediately. You may need to restart the app if shortcuts don't work properly.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.top, 8)
+            
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 10)
+        .onAppear {
+            // Initialize temp shortcut with current value
+            tempShortcut = appState.shortcutSettings.playPauseShortcut
+        }
+    }
+    
+    // State for shortcut recorder modal
+    @State private var showShortcutRecorder = false
+    @State private var tempShortcut = KeyboardShortcut(keyCode: 35, modifiers: NSEvent.ModifierFlags.command.rawValue | NSEvent.ModifierFlags.control.rawValue)
+    @State private var tempShortcutType: ShortcutType = .playPause
+    
+    // Enum to track which shortcut is being edited
+    private enum ShortcutType {
+        case playPause
+        case resetTimer
     }
     
     // Apply settings immediately

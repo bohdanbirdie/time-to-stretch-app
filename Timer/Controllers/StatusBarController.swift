@@ -20,6 +20,7 @@ class StatusBarController {
     private var appearanceObserver: NSObjectProtocol?
     private var menuBarTextVisibilityObserver: NSObjectProtocol?
     private var timerSettingsObserver: NSObjectProtocol?
+    private var shortcutSettingsObserver: NSObjectProtocol?
     
     init() {
         statusBar = NSStatusBar.system
@@ -48,6 +49,9 @@ class StatusBarController {
         
         // Set up timer settings observer
         setupTimerSettingsObserver()
+        
+        // Set up shortcut settings observer
+        setupShortcutSettingsObserver()
         
         // Configure button with the icon
         if let button = statusItem?.button {
@@ -85,6 +89,10 @@ class StatusBarController {
         if let observer = timerSettingsObserver {
             NotificationCenter.default.removeObserver(observer)
         }
+        
+        if let observer = shortcutSettingsObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
     
     private func setupContextMenu() {
@@ -95,18 +103,54 @@ class StatusBarController {
         let playPauseItem = NSMenuItem(
             title: appState.timerState != .inactive ? "Pause" : "Play",
             action: #selector(toggleTimer),
-            keyEquivalent: "p"
+            keyEquivalent: ""
         )
         playPauseItem.target = self
+        
+        // Set key equivalent from user settings if available
+        if appState.shortcutSettings.playPauseShortcut.isEnabled {
+            let shortcut = appState.shortcutSettings.playPauseShortcut
+            playPauseItem.keyEquivalent = shortcut.character.lowercased()
+            
+            // Set modifiers for the menu item
+            let modifiers = NSEvent.ModifierFlags(rawValue: shortcut.modifiers)
+            var keyEquivalentModifierMask: NSEvent.ModifierFlags = []
+            
+            if modifiers.contains(.command) { keyEquivalentModifierMask.insert(.command) }
+            if modifiers.contains(.option) { keyEquivalentModifierMask.insert(.option) }
+            if modifiers.contains(.control) { keyEquivalentModifierMask.insert(.control) }
+            if modifiers.contains(.shift) { keyEquivalentModifierMask.insert(.shift) }
+            
+            playPauseItem.keyEquivalentModifierMask = keyEquivalentModifierMask
+        }
+        
         menu.addItem(playPauseItem)
         
         // Add Reset button
         let resetItem = NSMenuItem(
             title: "Reset",
             action: #selector(resetTimer),
-            keyEquivalent: "r"
+            keyEquivalent: ""
         )
         resetItem.target = self
+        
+        // Set key equivalent from user settings if available
+        if appState.shortcutSettings.resetTimerShortcut.isEnabled {
+            let shortcut = appState.shortcutSettings.resetTimerShortcut
+            resetItem.keyEquivalent = shortcut.character.lowercased()
+            
+            // Set modifiers for the menu item
+            let modifiers = NSEvent.ModifierFlags(rawValue: shortcut.modifiers)
+            var keyEquivalentModifierMask: NSEvent.ModifierFlags = []
+            
+            if modifiers.contains(.command) { keyEquivalentModifierMask.insert(.command) }
+            if modifiers.contains(.option) { keyEquivalentModifierMask.insert(.option) }
+            if modifiers.contains(.control) { keyEquivalentModifierMask.insert(.control) }
+            if modifiers.contains(.shift) { keyEquivalentModifierMask.insert(.shift) }
+            
+            resetItem.keyEquivalentModifierMask = keyEquivalentModifierMask
+        }
+        
         menu.addItem(resetItem)
         
         // Add separator
@@ -351,6 +395,19 @@ class StatusBarController {
         ) { [weak self] _ in
             // Update the current timer value display
             self?.updateMenuBarTimer(timerValue: self?.appState.currentTimerValue ?? 0)
+        }
+    }
+    
+    // MARK: - Shortcut Settings Observer
+    
+    private func setupShortcutSettingsObserver() {
+        shortcutSettingsObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("ShortcutSettingsDidChange"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            // Update the context menu with new shortcuts
+            self?.setupContextMenu()
         }
     }
 }
