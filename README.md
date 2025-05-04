@@ -1,10 +1,10 @@
-# Timer
+# Time to stretch
 
 <p align="center">
-  <img src="Timer/Assets.xcassets/AppIcon.appiconset/256-mac.png" alt="Timer App Icon" width="128">
+  <img src="Timer/Assets.xcassets/AppIcon.appiconset/256-mac.png" alt="Time to stretch App Icon" width="128">
 </p>
 
-A customizable macOS menubar timer app inspired by the Pomodoro Technique, designed to help you stay focused and productive.
+A customizable macOS menubar timer app designed to remind you to take breaks and stretch regularly. Inspired by the Pomodoro Technique, it helps you stay focused while maintaining your physical well-being.
 
 ## Features
 
@@ -35,7 +35,7 @@ A customizable macOS menubar timer app inspired by the Pomodoro Technique, desig
 ### Building from Source
 
 1. Clone the repository
-2. Open `Timer.xcodeproj` in Xcode
+2. Open `Time to stretch.xcodeproj` in Xcode
 3. Build and run the project
 
 ## License

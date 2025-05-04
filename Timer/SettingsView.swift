@@ -19,7 +19,7 @@ struct SettingsView: View {
     
     // Tab selection state
     @State private var selectedTab: String = "App configuration"
-    private let tabs = ["App configuration", "Intervals", "Shortcuts"]
+    private let tabs = ["App configuration", "Intervals", "Shortcuts", "About"]
     
     // Initialize state values
     init(isPresented: Binding<Bool>) {
@@ -47,8 +47,10 @@ struct SettingsView: View {
                     appConfigurationView
                 } else if selectedTab == "Intervals" {
                     intervalsView
-                } else {
+                } else if selectedTab == "Shortcuts" {
                     shortcutsView
+                } else {
+                    aboutView
                 }
             }
         }
@@ -444,6 +446,57 @@ struct SettingsView: View {
         .onAppear {
             // Initialize temp shortcut with current value
             tempShortcut = appState.shortcutSettings.playPauseShortcut
+        }
+    }
+    
+    // About Tab
+    private var aboutView: some View {
+        VStack(spacing: 20) {
+            // App Icon
+            if let appIconImage = NSImage(named: NSImage.applicationIconName) {
+                Image(nsImage: appIconImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 128, height: 128)
+                    .padding(.top, 20)
+            }
+            
+            // App Name
+            Text("Time to stretch")
+                .font(.title)
+                .fontWeight(.bold)
+            
+            // Version
+            Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"))")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            // Links
+            VStack(spacing: 12) {
+                Link("GitHub Repository", destination: URL(string: "https://github.com/bohdanbirdie/timer-app")!)
+                    .buttonStyle(LinkButtonStyle())
+                
+                Link("Developer: @bohdanbirdie", destination: URL(string: "https://github.com/bohdanbirdie")!)
+                    .buttonStyle(LinkButtonStyle())
+            }
+            .padding(.top, 10)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal)
+    }
+    
+    // Custom link button style
+    private struct LinkButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.blue.opacity(configuration.isPressed ? 0.7 : 0.1))
+                .foregroundColor(.blue)
+                .cornerRadius(8)
+                .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
         }
     }
     

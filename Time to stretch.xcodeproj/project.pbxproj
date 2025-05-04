@@ -24,9 +24,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		2E74175D2DC3EBC000118009 /* Timer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Timer.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		2E74176E2DC3EBC200118009 /* TimerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		2E7417782DC3EBC200118009 /* TimerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E74175D2DC3EBC000118009 /* Time to stretch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Time to stretch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E74176E2DC3EBC200118009 /* Time to stretchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Time to stretchTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E7417782DC3EBC200118009 /* Time to stretchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Time to stretchUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -85,9 +85,9 @@
 		2E74175E2DC3EBC000118009 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2E74175D2DC3EBC000118009 /* Timer.app */,
-				2E74176E2DC3EBC200118009 /* TimerTests.xctest */,
-				2E7417782DC3EBC200118009 /* TimerUITests.xctest */,
+				2E74175D2DC3EBC000118009 /* Time to stretch.app */,
+				2E74176E2DC3EBC200118009 /* Time to stretchTests.xctest */,
+				2E7417782DC3EBC200118009 /* Time to stretchUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2E74175C2DC3EBC000118009 /* Timer */ = {
+		2E74175C2DC3EBC000118009 /* Time to stretch */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2E7417822DC3EBC200118009 /* Build configuration list for PBXNativeTarget "Timer" */;
+			buildConfigurationList = 2E7417822DC3EBC200118009 /* Build configuration list for PBXNativeTarget "Time to stretch" */;
 			buildPhases = (
 				2E7417592DC3EBC000118009 /* Sources */,
 				2E74175A2DC3EBC000118009 /* Frameworks */,
@@ -110,16 +110,16 @@
 			fileSystemSynchronizedGroups = (
 				2E74175F2DC3EBC000118009 /* Timer */,
 			);
-			name = Timer;
+			name = "Time to stretch";
 			packageProductDependencies = (
 			);
 			productName = Timer;
-			productReference = 2E74175D2DC3EBC000118009 /* Timer.app */;
+			productReference = 2E74175D2DC3EBC000118009 /* Time to stretch.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2E74176D2DC3EBC200118009 /* TimerTests */ = {
+		2E74176D2DC3EBC200118009 /* Time to stretchTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2E7417852DC3EBC200118009 /* Build configuration list for PBXNativeTarget "TimerTests" */;
+			buildConfigurationList = 2E7417852DC3EBC200118009 /* Build configuration list for PBXNativeTarget "Time to stretchTests" */;
 			buildPhases = (
 				2E74176A2DC3EBC200118009 /* Sources */,
 				2E74176B2DC3EBC200118009 /* Frameworks */,
@@ -133,16 +133,16 @@
 			fileSystemSynchronizedGroups = (
 				2E7417712DC3EBC200118009 /* TimerTests */,
 			);
-			name = TimerTests;
+			name = "Time to stretchTests";
 			packageProductDependencies = (
 			);
 			productName = TimerTests;
-			productReference = 2E74176E2DC3EBC200118009 /* TimerTests.xctest */;
+			productReference = 2E74176E2DC3EBC200118009 /* Time to stretchTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		2E7417772DC3EBC200118009 /* TimerUITests */ = {
+		2E7417772DC3EBC200118009 /* Time to stretchUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2E7417882DC3EBC200118009 /* Build configuration list for PBXNativeTarget "TimerUITests" */;
+			buildConfigurationList = 2E7417882DC3EBC200118009 /* Build configuration list for PBXNativeTarget "Time to stretchUITests" */;
 			buildPhases = (
 				2E7417742DC3EBC200118009 /* Sources */,
 				2E7417752DC3EBC200118009 /* Frameworks */,
@@ -156,11 +156,11 @@
 			fileSystemSynchronizedGroups = (
 				2E74177B2DC3EBC200118009 /* TimerUITests */,
 			);
-			name = TimerUITests;
+			name = "Time to stretchUITests";
 			packageProductDependencies = (
 			);
 			productName = TimerUITests;
-			productReference = 2E7417782DC3EBC200118009 /* TimerUITests.xctest */;
+			productReference = 2E7417782DC3EBC200118009 /* Time to stretchUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 2E7417582DC3EBC000118009 /* Build configuration list for PBXProject "Timer" */;
+			buildConfigurationList = 2E7417582DC3EBC000118009 /* Build configuration list for PBXProject "Time to stretch" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -200,9 +200,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2E74175C2DC3EBC000118009 /* Timer */,
-				2E74176D2DC3EBC200118009 /* TimerTests */,
-				2E7417772DC3EBC200118009 /* TimerUITests */,
+				2E74175C2DC3EBC000118009 /* Time to stretch */,
+				2E74176D2DC3EBC200118009 /* Time to stretchTests */,
+				2E7417772DC3EBC200118009 /* Time to stretchUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +258,12 @@
 /* Begin PBXTargetDependency section */
 		2E7417702DC3EBC200118009 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2E74175C2DC3EBC000118009 /* Timer */;
+			target = 2E74175C2DC3EBC000118009 /* Time to stretch */;
 			targetProxy = 2E74176F2DC3EBC200118009 /* PBXContainerItemProxy */;
 		};
 		2E74177A2DC3EBC200118009 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2E74175C2DC3EBC000118009 /* Timer */;
+			target = 2E74175C2DC3EBC000118009 /* Time to stretch */;
 			targetProxy = 2E7417792DC3EBC200118009 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -397,6 +397,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Timer/Preview Content\"";
+				DEVELOPMENT_TEAM = E6JHWE4P5L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -424,6 +425,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Timer/Preview Content\"";
+				DEVELOPMENT_TEAM = E6JHWE4P5L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -454,7 +456,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Timer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Timer";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Time to stretch.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Time to stretch";
 			};
 			name = Debug;
 		};
@@ -471,7 +473,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Timer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Timer";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Time to stretch.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Time to stretch";
 			};
 			name = Release;
 		};
@@ -508,7 +510,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2E7417582DC3EBC000118009 /* Build configuration list for PBXProject "Timer" */ = {
+		2E7417582DC3EBC000118009 /* Build configuration list for PBXProject "Time to stretch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E7417802DC3EBC200118009 /* Debug */,
@@ -517,7 +519,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2E7417822DC3EBC200118009 /* Build configuration list for PBXNativeTarget "Timer" */ = {
+		2E7417822DC3EBC200118009 /* Build configuration list for PBXNativeTarget "Time to stretch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E7417832DC3EBC200118009 /* Debug */,
@@ -526,7 +528,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2E7417852DC3EBC200118009 /* Build configuration list for PBXNativeTarget "TimerTests" */ = {
+		2E7417852DC3EBC200118009 /* Build configuration list for PBXNativeTarget "Time to stretchTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E7417862DC3EBC200118009 /* Debug */,
@@ -535,7 +537,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2E7417882DC3EBC200118009 /* Build configuration list for PBXNativeTarget "TimerUITests" */ = {
+		2E7417882DC3EBC200118009 /* Build configuration list for PBXNativeTarget "Time to stretchUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E7417892DC3EBC200118009 /* Debug */,
