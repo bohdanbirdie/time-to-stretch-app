@@ -81,7 +81,11 @@ struct SettingsView: View {
             
             HStack(spacing: 20) {
                 Button("Cancel") {
+                    // Cancel pending changes
                     appState.cancelPendingSettingsChange()
+                    
+                    // Reset UI values to current settings
+                    resetUIToCurrentSettings()
                 }
                 .buttonStyle(BorderedButtonStyle())
                 
@@ -171,116 +175,198 @@ struct SettingsView: View {
     
     // Intervals Tab
     private var intervalsView: some View {
-        VStack {
-            VStack(alignment: .leading, spacing: 20) {
-                // Focus duration time input
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Focus Duration")
-                        .font(.headline)
-                        .fontWeight(.medium)
+        VStack(alignment: .leading, spacing: 10) {
+            // Section header
+            Text("Time Intervals")
+                .font(.headline)
+                .padding(.bottom, 4)
+            
+            // Time intervals group with background
+            VStack(alignment: .leading, spacing: 8) {
+                // Focus Duration
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Focus Duration")
+                            .foregroundColor(.primary)
+                        
+                        Text("Min: 1 min, max: 8 hours")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.top, 8) // Align with the text field
                     
-                    HStack(spacing: 20) {
-                        // Hours Picker
+                    Spacer()
+                    
+                    HStack(spacing: 8) {
+                        // Hours
                         VStack(alignment: .center) {
-                            Picker("Hours", selection: $focusHours) {
-                                ForEach(0..<3) { hour in
-                                    Text("\(hour)").tag(hour)
+                            TextField("", value: $focusHours, formatter: NumberFormatter())
+                                .frame(width: 50)
+                                .multilineTextAlignment(.center)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .onChange(of: focusHours) { _ in
+                                    applySettings()
                                 }
-                            }
-                            .labelsHidden()
-                            .onChange(of: focusHours) { _ in
-                                applySettings()
-                            }
+                                .onSubmit {
+                                    applySettings()
+                                }
                             
                             Text("Hours")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                         
-                        // Minutes Picker
+                        // Minutes
                         VStack(alignment: .center) {
-                            Picker("Minutes", selection: $focusMinutes) {
-                                ForEach(0..<60) { minute in
-                                    Text(String(format: "%02d", minute)).tag(minute)
+                            TextField("", value: $focusMinutes, formatter: NumberFormatter())
+                                .frame(width: 50)
+                                .multilineTextAlignment(.center)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .onChange(of: focusMinutes) { _ in
+                                    applySettings()
                                 }
-                            }
-                            .labelsHidden()
-                            .onChange(of: focusMinutes) { _ in
-                                applySettings()
-                            }
+                                .onSubmit {
+                                    applySettings()
+                                }
                             
                             Text("Minutes")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
-                        Spacer()
                     }
                 }
-                .padding(.horizontal)
                 
-                // Break duration time input
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Break Duration")
-                        .font(.headline)
-                        .fontWeight(.medium)
+                // Break Duration
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Break Duration")
+                            .foregroundColor(.primary)
+                        
+                        Text("Min: 1 min, max: 1 hour")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.top, 8) // Align with the text field
                     
-                    HStack(spacing: 20) {
-                        // Minutes Picker
+                    Spacer()
+                    
+                    HStack(spacing: 8) {
+                        // Minutes
                         VStack(alignment: .center) {
-                            Picker("Minutes", selection: $breakMinutes) {
-                                ForEach(0..<61) { minute in
-                                    Text("\(minute)").tag(minute)
+                            TextField("", value: $breakMinutes, formatter: NumberFormatter())
+                                .frame(width: 50)
+                                .multilineTextAlignment(.center)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .onChange(of: breakMinutes) { _ in
+                                    applySettings()
                                 }
-                            }
-                            .labelsHidden()
-                            .onChange(of: breakMinutes) { _ in
-                                applySettings()
-                            }
+                                .onSubmit {
+                                    applySettings()
+                                }
                             
                             Text("Minutes")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                         
-                        // Seconds Picker
+                        // Seconds
                         VStack(alignment: .center) {
-                            Picker("Seconds", selection: $breakSeconds) {
-                                ForEach(0..<60) { second in
-                                    Text(String(format: "%02d", second)).tag(second)
+                            TextField("", value: $breakSeconds, formatter: NumberFormatter())
+                                .frame(width: 50)
+                                .multilineTextAlignment(.center)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .onChange(of: breakSeconds) { _ in
+                                    applySettings()
                                 }
-                            }
-                            .labelsHidden()
-                            .onChange(of: breakSeconds) { _ in
-                                applySettings()
-                            }
+                                .onSubmit {
+                                    applySettings()
+                                }
                             
                             Text("Seconds")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
-                        Spacer()
                     }
                 }
-                .padding(.horizontal)
-                
-                Spacer()
             }
-            .padding(.vertical)
+            .padding(12)
+            .background(Color(NSColor.controlBackgroundColor))
+            .cornerRadius(8)
+            
+            // Presets section
+            Text("Presets")
+                .font(.headline)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+            
+            // Preset buttons in a grid with background
+            VStack {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 12) {
+                    // Create buttons for each preset
+                    ForEach(TimerPresets.all, id: \.name) { preset in
+                        Button(action: {
+                            applyPreset(preset)
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: preset.iconName)
+                                    .font(.title2)
+                                Text(preset.name)
+                                    .font(.caption)
+                                    .lineLimit(1)
+                            }
+                            .frame(height: 60)
+                        }
+                        .buttonStyle(BorderedButtonStyle())
+                    }
+                }
+                .padding(8)
+            }
+            .padding(12)
+            .background(Color(NSColor.controlBackgroundColor))
+            .cornerRadius(8)
+            
+            Spacer()
         }
+        .padding(.horizontal)
+        .padding(.top, 10)
     }
     
     // Apply settings immediately
     private func applySettings() {
         // Calculate total focus minutes
         let totalFocusMinutes = (focusHours * 60) + focusMinutes
-        // Ensure we have at least 1 minute for focus
-        let adjustedFocusMinutes = max(1, totalFocusMinutes)
         
-        // Ensure we have at least some break time if minutes are 0
-        let adjustedBreakMinutes = breakMinutes
-        let adjustedBreakSeconds = (breakMinutes == 0 && breakSeconds == 0) ? 30 : breakSeconds
+        // Ensure we have at least 1 minute and at most 8 hours for focus
+        let adjustedFocusMinutes = min(8 * 60, max(1, totalFocusMinutes))
+        
+        // If the adjusted value is different, update the UI
+        if adjustedFocusMinutes != totalFocusMinutes {
+            // Recalculate hours and minutes for UI
+            focusHours = adjustedFocusMinutes / 60
+            focusMinutes = adjustedFocusMinutes % 60
+        }
+        
+        // Ensure we have at least 1 minute and at most 1 hour for break
+        let adjustedBreakMinutes = min(60, max(1, breakMinutes))
+        
+        // If the adjusted value is different, update the UI
+        if adjustedBreakMinutes != breakMinutes {
+            breakMinutes = adjustedBreakMinutes
+            // If we had to adjust minutes, ensure seconds are 0
+            if breakMinutes == 1 && breakSeconds == 0 {
+                breakSeconds = 0
+            }
+        }
+        
+        // Ensure break seconds are valid (0-59)
+        let adjustedBreakSeconds = min(59, max(0, breakSeconds))
+        if adjustedBreakSeconds != breakSeconds {
+            breakSeconds = adjustedBreakSeconds
+        }
         
         // Update settings in AppState
         appState.prepareSettingsUpdate(
@@ -288,6 +374,24 @@ struct SettingsView: View {
             breakMinutes: adjustedBreakMinutes,
             breakSeconds: adjustedBreakSeconds
         )
+    }
+    
+    // Apply a preset
+    private func applyPreset(_ preset: TimerPreset) {
+        focusHours = preset.focusHours
+        focusMinutes = preset.focusMinutes
+        breakMinutes = preset.breakMinutes
+        breakSeconds = preset.breakSeconds
+        applySettings()
+    }
+    
+    // Reset UI values to current settings
+    private func resetUIToCurrentSettings() {
+        let totalFocusMinutes = appState.timerSettings.focusMinutes
+        focusHours = totalFocusMinutes / 60
+        focusMinutes = totalFocusMinutes % 60
+        breakMinutes = appState.timerSettings.breakMinutes
+        breakSeconds = appState.timerSettings.breakSeconds
     }
 }
 

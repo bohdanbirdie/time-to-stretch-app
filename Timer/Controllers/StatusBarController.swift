@@ -19,6 +19,7 @@ class StatusBarController {
     private var statusMenu: NSMenu?
     private var appearanceObserver: NSObjectProtocol?
     private var menuBarTextVisibilityObserver: NSObjectProtocol?
+    private var timerSettingsObserver: NSObjectProtocol?
     
     init() {
         statusBar = NSStatusBar.system
@@ -44,6 +45,9 @@ class StatusBarController {
         
         // Set up menu bar text visibility observer
         setupMenuBarTextVisibilityObserver()
+        
+        // Set up timer settings observer
+        setupTimerSettingsObserver()
         
         // Configure button with the icon
         if let button = statusItem?.button {
@@ -75,6 +79,10 @@ class StatusBarController {
         }
         
         if let observer = menuBarTextVisibilityObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        
+        if let observer = timerSettingsObserver {
             NotificationCenter.default.removeObserver(observer)
         }
     }
@@ -328,6 +336,20 @@ class StatusBarController {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            self?.updateMenuBarTimer(timerValue: self?.appState.currentTimerValue ?? 0)
+        }
+    }
+    
+    // MARK: - Timer Settings Observer
+    
+    private func setupTimerSettingsObserver() {
+        // Listen for timer settings changes
+        timerSettingsObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("TimerSettingsDidChange"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            // Update the current timer value display
             self?.updateMenuBarTimer(timerValue: self?.appState.currentTimerValue ?? 0)
         }
     }

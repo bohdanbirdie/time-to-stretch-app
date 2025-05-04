@@ -66,7 +66,7 @@ class AppState: ObservableObject {
         didSet {
             saveAppearanceMode()
             // Post notification for appearance mode change
-            NotificationCenter.default.post(name: NSNotification.Name("AppearanceModeDidChange"), object: nil)
+            NotificationCenter.default.post(name: Notification.Name("AppearanceModeDidChange"), object: nil)
         }
     }
     
@@ -75,7 +75,7 @@ class AppState: ObservableObject {
         didSet {
             saveShowTimerTextInMenuBar()
             // Post notification for menu bar visibility change
-            NotificationCenter.default.post(name: NSNotification.Name("MenuBarTextVisibilityDidChange"), object: nil)
+            NotificationCenter.default.post(name: Notification.Name("MenuBarTextVisibilityDidChange"), object: nil)
         }
     }
     
@@ -148,6 +148,9 @@ class AppState: ObservableObject {
         
         // Update the current timer value
         currentTimerValue = focusRemainingTime
+        
+        // Send update to subscribers to refresh the UI
+        timerUpdatePublisher.send(currentTimerValue)
     }
     
     // Reset timer values to full duration
@@ -162,8 +165,11 @@ class AppState: ObservableObject {
     
     // This is called when settings are changed in the UI
     func prepareSettingsUpdate(focusMinutes: Int, breakMinutes: Int, breakSeconds: Int) {
-        // If timer is active, store as pending change that needs confirmation
-        if timerState != .inactive {
+        // Check if timer values have been modified from their default state
+        let isTimerModified = focusRemainingTime != focusDuration || breakRemainingTime != breakDuration
+        
+        // If timer has been started and not reset (values modified from default), store as pending change that needs confirmation
+        if isTimerModified {
             pendingSettingsChange = PendingSettingsChange(
                 focusMinutes: focusMinutes,
                 breakMinutes: breakMinutes,
@@ -171,7 +177,7 @@ class AppState: ObservableObject {
                 autoCycleTimer: timerSettings.autoCycleTimer
             )
         } else {
-            // If timer is not active, apply immediately
+            // If timer is at default values (not started or has been reset), apply immediately
             updateTimerSettings(
                 focusMinutes: focusMinutes,
                 breakMinutes: breakMinutes,
@@ -202,6 +208,16 @@ class AppState: ObservableObject {
     
     // Actually update the settings
     func updateTimerSettings(focusMinutes: Int, breakMinutes: Int, breakSeconds: Int) {
+        // Stop the timer if it's running
+        if timer != nil {
+            timer?.invalidate()
+            timer = nil
+            timerState = .inactive
+            
+            // Notify that the timer has been stopped
+            NotificationCenter.default.post(name: Notification.Name("stopTimer"), object: nil)
+        }
+        
         timerSettings = TimerSettings(
             focusMinutes: focusMinutes, 
             breakMinutes: breakMinutes, 
@@ -223,7 +239,7 @@ class AppState: ObservableObject {
             UserDefaults.standard.set(encodedData, forKey: timerSettingsKey)
             
             // Post notification that settings have changed
-            NotificationCenter.default.post(name: NSNotification.Name("TimerSettingsDidChange"), object: nil)
+            NotificationCenter.default.post(name: Notification.Name("TimerSettingsDidChange"), object: nil)
         }
     }
     
