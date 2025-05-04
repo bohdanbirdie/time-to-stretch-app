@@ -473,7 +473,7 @@ struct SettingsView: View {
             
             // Links
             VStack(spacing: 12) {
-                Link("GitHub Repository", destination: URL(string: "https://github.com/bohdanbirdie/timer-app")!)
+                Link("GitHub Repository", destination: URL(string: "https://github.com/bohdanbirdie/time-to-stretch-app")!)
                     .buttonStyle(LinkButtonStyle())
                 
                 Link("Developer: @bohdanbirdie", destination: URL(string: "https://github.com/bohdanbirdie")!)

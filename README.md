@@ -22,7 +22,7 @@ A customizable macOS menubar timer app designed to remind you to take breaks and
 
 ## Installation
 
-1. Download the latest release from the [Releases](https://github.com/bohdanbirdie/timer-app/releases) page
+1. Download the latest release from the [Releases](https://github.com/bohdanbirdie/time-to-stretch-app/releases) page
 2. Move the app to your Applications folder
 3. Launch the app
 
