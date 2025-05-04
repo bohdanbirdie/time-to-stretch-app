@@ -29,6 +29,9 @@ struct PopoverView: View {
     // Subscription to settings changes
     @State private var settingsSubscription: AnyCancellable?
     
+    // Notification observers
+    @State private var notificationObservers: [NSObjectProtocol] = []
+    
     var body: some View {
         VStack(spacing: 10) {
             VStack(spacing: 8) {
@@ -115,6 +118,9 @@ struct PopoverView: View {
                         breakSeconds: newSettings.breakSeconds
                     )
                 }
+                
+            // Set up notification observers for timer controls from menu
+            setupNotificationObservers()
         }
         .onDisappear {
             // Ensure timer stops when view disappears
@@ -124,6 +130,9 @@ struct PopoverView: View {
             
             // Cancel subscription
             settingsSubscription?.cancel()
+            
+            // Remove notification observers
+            removeNotificationObservers()
         }
     }
     
@@ -138,8 +147,7 @@ struct PopoverView: View {
     
     func startTimer() {
         timerRunning = true
-        appState.isTimerActive = true
-        appState.isBreakActive = isBreakActive
+        appState.timerState = isBreakActive ? .breakActive : .focusActive
         
         // Update the current timer value in AppState
         updateAppStateTimerValue()
@@ -153,7 +161,7 @@ struct PopoverView: View {
                     // When focus timer reaches zero, immediately switch to break
                     if focusRemainingTime == 0 {
                         isBreakActive = true
-                        appState.isBreakActive = true
+                        appState.timerState = .breakActive
                         
                         // Send notification when focus timer ends
                         sendFocusEndedNotification()
@@ -185,7 +193,7 @@ struct PopoverView: View {
     
     func stopTimer() {
         timerRunning = false
-        appState.isTimerActive = false
+        appState.timerState = .inactive
         timer?.invalidate()
         timer = nil
         
@@ -219,6 +227,7 @@ struct PopoverView: View {
     private func sendFocusEndedNotification() {
         let content = UNMutableNotificationContent()
         content.title = "Focus Time Ended"
+        // TODO: set dynamic type
         content.body = "Time for a break! Take 5 minutes to relax."
         content.sound = UNNotificationSound.default
         
@@ -257,6 +266,54 @@ struct PopoverView: View {
                 print("Error sending notification: \(error)")
             }
         }
+    }
+    
+    // Setup notification observers for menu controls
+    private func setupNotificationObservers() {
+        // Remove any existing observers first
+        removeNotificationObservers()
+        
+        // Start timer notification
+        let startObserver = NotificationCenter.default.addObserver(
+            forName: .startTimer,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            if !self.timerRunning {
+                self.startTimer()
+            }
+        }
+        
+        // Stop timer notification
+        let stopObserver = NotificationCenter.default.addObserver(
+            forName: .stopTimer,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            if self.timerRunning {
+                self.stopTimer()
+            }
+        }
+        
+        // Reset timer notification
+        let resetObserver = NotificationCenter.default.addObserver(
+            forName: .resetTimer,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            self.resetTimers()
+        }
+        
+        // Store observers for cleanup
+        notificationObservers = [startObserver, stopObserver, resetObserver]
+    }
+    
+    // Remove notification observers
+    private func removeNotificationObservers() {
+        for observer in notificationObservers {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        notificationObservers = []
     }
 }
 
