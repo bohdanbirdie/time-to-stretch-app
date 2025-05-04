@@ -103,131 +103,33 @@ struct PopoverView: View {
     
     // Timer control functions
     func toggleTimer() {
-        if appState.timerState != .inactive {
-            stopTimer()
-        } else {
-            startTimer()
-        }
+        appState.timerManager.toggleTimer()
     }
     
     func startTimer() {
-        // Set the timer state based on which timer is active
-        appState.timerState = appState.timerState == .breakActive ? .breakActive : .focusActive
-        
-        // Update the current timer value in AppState
-        updateAppStateTimerValue()
-        
-        appState.timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            if appState.timerState == .focusActive {
-                // Focus timer is active
-                if appState.focusRemainingTime > 0 {
-                    appState.focusRemainingTime -= 1
-                    
-                    // When focus timer reaches zero, immediately switch to break
-                    if appState.focusRemainingTime == 0 {
-                        appState.timerState = .breakActive
-                        
-                        // Send notification when focus timer ends
-                        sendFocusEndedNotification()
-                    }
-                    
-                    // Update the current timer value in AppState
-                    updateAppStateTimerValue()
-                }
-            } else if appState.timerState == .breakActive {
-                // Break timer is active
-                if appState.breakRemainingTime > 0 {
-                    appState.breakRemainingTime -= 1
-                    
-                    // When break timer reaches zero, immediately reset and stop
-                    if appState.breakRemainingTime == 0 {
-                        stopTimer()
-                        resetTimers()
-                        
-                        // Send notification when break timer ends
-                        sendBreakEndedNotification()
-                    }
-                    
-                    // Update the current timer value in AppState
-                    updateAppStateTimerValue()
-                }
-            }
-        }
+        appState.timerManager.startTimer()
     }
     
     func stopTimer() {
-        appState.timerState = .inactive
-        appState.timer?.invalidate()
-        appState.timer = nil
-        
-        // Update the current timer value in AppState without resetting to 0
-        // This ensures the time remains visible and in sync when paused
-        updateAppStateTimerValue()
+        appState.timerManager.stopTimer()
     }
     
     func resetTimers() {
-        stopTimer()
-        appState.resetTimerValues()
-        
-        // Update the current timer value in AppState
-        updateAppStateTimerValue()
+        appState.timerManager.resetTimers()
     }
     
     private func updateAppStateTimerValue() {
-        // Update the current timer value based on which timer is active
-        if appState.timerState == .breakActive {
-            appState.currentTimerValue = appState.breakRemainingTime
-        } else {
-            appState.currentTimerValue = appState.focusRemainingTime
-        }
-        
-        // Publish the timer update
-        appState.timerUpdatePublisher.send(appState.currentTimerValue)
+        // This is now handled by the TimerManager
     }
     
     // Helper method to send a notification when focus timer ends
     private func sendFocusEndedNotification() {
-        let content = UNMutableNotificationContent()
-        content.title = "Focus Time Ended"
-        // TODO: set dynamic type
-        content.body = "Time for a break! Take 5 minutes to relax."
-        content.sound = UNNotificationSound.default
-        
-        // Show this notification immediately
-        let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
-            content: content,
-            trigger: nil
-        )
-        
-        // Add the notification request
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error sending notification: \(error)")
-            }
-        }
+        // This is now handled by the TimerManager
     }
     
     // Helper method to send a notification when break timer ends
     private func sendBreakEndedNotification() {
-        let content = UNMutableNotificationContent()
-        content.title = "Break Time Ended"
-        content.body = "Time to focus again!"
-        content.sound = UNNotificationSound.default
-        
-        // Show this notification immediately
-        let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
-            content: content,
-            trigger: nil
-        )
-        
-        // Add the notification request
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error sending notification: \(error)")
-            }
-        }
+        // This is now handled by the TimerManager
     }
     
     // Setup notification observers for menu controls

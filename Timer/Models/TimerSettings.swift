@@ -12,12 +12,14 @@ struct TimerSettings: Codable {
     var focusMinutes: Int
     var breakMinutes: Int
     var breakSeconds: Int
+    var autoCycleTimer: Bool
     
     // Default settings
     static let defaultSettings = TimerSettings(
         focusMinutes: 60, 
         breakMinutes: 5,
-        breakSeconds: 0
+        breakSeconds: 0,
+        autoCycleTimer: false
     )
 }
 
@@ -26,4 +28,5 @@ struct PendingSettingsChange {
     var focusMinutes: Int
     var breakMinutes: Int
     var breakSeconds: Int
+    var autoCycleTimer: Bool
 }

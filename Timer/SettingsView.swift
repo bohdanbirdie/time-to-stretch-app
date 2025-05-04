@@ -144,7 +144,7 @@ struct SettingsView: View {
                 
                 LabeledToggle(title: "Show timer text in menu bar", isOn: $appState.showTimerTextInMenuBar)
                 
-                LabeledToggle(title: "Auto-cycle timer", isOn: .constant(false))
+                LabeledToggle(title: "Auto-cycle timer", isOn: $appState.autoCycleTimer)
             }
             
             Group {

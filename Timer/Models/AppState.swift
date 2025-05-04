@@ -43,6 +43,11 @@ class AppState: ObservableObject {
     weak var statusBarController: StatusBarController?
     @Published var timerSettings: TimerSettings
     
+    // Timer manager
+    lazy var timerManager: TimerManager = {
+        return TimerManager(appState: self)
+    }()
+    
     // Timer state tracking
     @Published var timerState: TimerState = .inactive
     @Published var currentTimerValue: TimeInterval = 0
@@ -71,6 +76,18 @@ class AppState: ObservableObject {
             saveShowTimerTextInMenuBar()
             // Post notification for menu bar visibility change
             NotificationCenter.default.post(name: NSNotification.Name("MenuBarTextVisibilityDidChange"), object: nil)
+        }
+    }
+    
+    // Auto-cycle timer setting
+    var autoCycleTimer: Bool {
+        get {
+            return timerSettings.autoCycleTimer
+        }
+        set {
+            timerSettings.autoCycleTimer = newValue
+            saveSettings()
+            objectWillChange.send()
         }
     }
     
@@ -150,7 +167,8 @@ class AppState: ObservableObject {
             pendingSettingsChange = PendingSettingsChange(
                 focusMinutes: focusMinutes,
                 breakMinutes: breakMinutes,
-                breakSeconds: breakSeconds
+                breakSeconds: breakSeconds,
+                autoCycleTimer: timerSettings.autoCycleTimer
             )
         } else {
             // If timer is not active, apply immediately
@@ -170,6 +188,9 @@ class AppState: ObservableObject {
                 breakMinutes: pending.breakMinutes,
                 breakSeconds: pending.breakSeconds
             )
+            // Update autoCycleTimer separately since it's not part of updateTimerSettings
+            timerSettings.autoCycleTimer = pending.autoCycleTimer
+            saveSettings()
             pendingSettingsChange = nil
         }
     }
@@ -181,7 +202,12 @@ class AppState: ObservableObject {
     
     // Actually update the settings
     func updateTimerSettings(focusMinutes: Int, breakMinutes: Int, breakSeconds: Int) {
-        timerSettings = TimerSettings(focusMinutes: focusMinutes, breakMinutes: breakMinutes, breakSeconds: breakSeconds)
+        timerSettings = TimerSettings(
+            focusMinutes: focusMinutes, 
+            breakMinutes: breakMinutes, 
+            breakSeconds: breakSeconds,
+            autoCycleTimer: timerSettings.autoCycleTimer
+        )
         saveSettings()
         
         // Update timer durations based on new settings
@@ -195,6 +221,9 @@ class AppState: ObservableObject {
         // Save settings to UserDefaults
         if let encodedData = try? JSONEncoder().encode(timerSettings) {
             UserDefaults.standard.set(encodedData, forKey: timerSettingsKey)
+            
+            // Post notification that settings have changed
+            NotificationCenter.default.post(name: NSNotification.Name("TimerSettingsDidChange"), object: nil)
         }
     }
     
