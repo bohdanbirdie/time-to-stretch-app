@@ -18,8 +18,8 @@ struct SettingsView: View {
     @State private var breakSeconds: Int = 0
     
     // Tab selection state
-    @State private var selectedTab: String = "General"
-    private let tabs = ["General", "Intervals"]
+    @State private var selectedTab: String = "App configuration"
+    private let tabs = ["App configuration", "Intervals"]
     
     // Initialize state values
     init(isPresented: Binding<Bool>) {
@@ -43,8 +43,8 @@ struct SettingsView: View {
             
             // Content based on selected tab
             ScrollView {
-                if selectedTab == "General" {
-                    generalView
+                if selectedTab == "App configuration" {
+                    appConfigurationView
                 } else {
                     intervalsView
                 }
@@ -95,26 +95,78 @@ struct SettingsView: View {
         .frame(width: 350)
     }
     
-    // General Settings Tab
-    private var generalView: some View {
+    // Custom labeled toggle component
+    private struct LabeledToggle: View {
+        let title: String
+        @Binding var isOn: Bool
+        
+        var body: some View {
+            HStack {
+                Text(title)
+                    .foregroundColor(.primary)
+                Spacer()
+                Toggle(title, isOn: $isOn)
+                    .labelsHidden()
+            }
+        }
+    }
+    
+    // Custom labeled picker component
+    private struct LabeledPicker<T: Hashable & Identifiable>: View {
+        let title: String
+        let options: [T]
+        @Binding var selection: T
+        let itemLabel: (T) -> String
+        
+        var body: some View {
+            HStack {
+                Text(title)
+                    .foregroundColor(.primary)
+                Spacer()
+                Picker(title, selection: $selection) {
+                    ForEach(options) { option in
+                        Text(itemLabel(option)).tag(option)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 120)
+            }
+        }
+    }
+    
+    private var appConfigurationView: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Appearance")
-                .font(.headline)
-                .padding(.top)
             
-            Toggle("Launch at startup", isOn: .constant(false))
+            Group {
+                Text("General")
+                    .font(.headline)
+                    .padding(.bottom, 4)
+                
+                LabeledToggle(title: "Show timer text in menu bar", isOn: $appState.showTimerTextInMenuBar)
+                
+                LabeledToggle(title: "Auto-cycle timer", isOn: .constant(false))
+            }
             
-            Toggle("Show timer in menu bar", isOn: .constant(true))
-            
-            Toggle("Skip break if idle", isOn: .constant(true))
-            
-            Toggle("Auto-start timer", isOn: .constant(false))
-            
-            Toggle("Show task \"Other\"", isOn: .constant(true))
+            Group {
+                Text("System")
+                    .font(.headline)
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
+                
+                LabeledPicker(
+                    title: "Appearance",
+                    options: AppearanceMode.allCases,
+                    selection: $appState.appearanceMode,
+                    itemLabel: { $0.rawValue }
+                )
+                
+                LabeledToggle(title: "Launch at startup", isOn: $appState.launchAtStartup)
+            }
             
             Spacer()
         }
         .padding(.horizontal)
+        .padding(.top, 10)
     }
     
     // Intervals Tab

@@ -11,15 +11,19 @@ import Combine
 
 class StatusBarController {
     private var statusBar: NSStatusBar
-    private var statusItem: NSStatusItem
+    private var statusItem: NSStatusItem?
     private var popover: NSPopover
     var appState = AppState()
     private var settingsManager: SettingsWindowManager!
     private var timerUpdateSubscription: AnyCancellable?
     private var statusMenu: NSMenu?
+    private var appearanceObserver: NSObjectProtocol?
+    private var menuBarTextVisibilityObserver: NSObjectProtocol?
     
     init() {
         statusBar = NSStatusBar.system
+        
+        // Create status item
         statusItem = statusBar.statusItem(withLength: NSStatusItem.variableLength)
         
         // Create popover first
@@ -35,8 +39,14 @@ class StatusBarController {
         // Initialize settings manager with appState
         settingsManager = SettingsWindowManager(appState: appState)
         
-        // Configure button with just the icon initially
-        if let button = statusItem.button {
+        // Set up appearance mode observer
+        setupAppearanceModeObserver()
+        
+        // Set up menu bar text visibility observer
+        setupMenuBarTextVisibilityObserver()
+        
+        // Configure button with the icon
+        if let button = statusItem?.button {
             button.image = NSImage(
                 systemSymbolName: "timer",
                 accessibilityDescription: "Timer")
@@ -53,6 +63,20 @@ class StatusBarController {
         
         // Update the menu bar with the initial timer value
         updateMenuBarTimer(timerValue: appState.currentTimerValue)
+        
+        // Apply initial appearance
+        updatePopoverAppearance()
+    }
+    
+    deinit {
+        // Remove observers when this controller is deallocated
+        if let observer = appearanceObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        
+        if let observer = menuBarTextVisibilityObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
     
     private func setupContextMenu() {
@@ -114,7 +138,7 @@ class StatusBarController {
         statusMenu = menu
         
         // Set up the right-click event handler
-        if let button = statusItem.button {
+        if let button = statusItem?.button {
             // Override the mouse down event to detect right clicks
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
             
@@ -129,9 +153,9 @@ class StatusBarController {
             if event.type == .rightMouseUp {
                 // Show the context menu on right-click
                 if let menu = statusMenu {
-                    statusItem.menu = menu
-                    statusItem.button?.performClick(nil)
-                    statusItem.menu = nil  // Reset after use
+                    statusItem?.menu = menu
+                    statusItem?.button?.performClick(nil)
+                    statusItem?.menu = nil  // Reset after use
                 }
             } else if event.type == .leftMouseUp {
                 // Handle left-click as before
@@ -152,6 +176,9 @@ class StatusBarController {
     }
     
     private func updateMenuBarTimer(timerValue: TimeInterval) {
+        // Ensure we have a button to update
+        guard let button = statusItem?.button else { return }
+        
         // Get the minutes and seconds
         let minutes = Int(timerValue) / 60
         let seconds = Int(timerValue) % 60
@@ -160,45 +187,43 @@ class StatusBarController {
         let timeString = String(format: "%02d:%02d", minutes, seconds)
         
         // Update the menu bar
-        if let button = statusItem.button {
-            // Always show the time string
-            button.title = timeString
-            
-            // Use a monospaced font to prevent shifting
-            let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize + 1, weight: .regular)
-            button.font = font
-            
-            // Always keep the image on the left
-            button.imagePosition = .imageLeft
-            
-            // Set icon color based on timer mode
-            if appState.timerState != .inactive {
-                if appState.timerState == .breakActive {
-                    // Green icon for break time
-                    let greenIcon = NSImage(
-                        systemSymbolName: "timer",
-                        accessibilityDescription: "Timer"
-                    )?.withSymbolConfiguration(
-                        NSImage.SymbolConfiguration(paletteColors: [.systemGreen])
-                    )
-                    button.image = greenIcon
-                } else {
-                    // Default icon for focus time
-                    button.image = NSImage(
-                        systemSymbolName: "timer",
-                        accessibilityDescription: "Timer"
-                    )
-                }
-            } else {
-                // Gray icon when timer is not active
-                let grayIcon = NSImage(
+        // Show the time string only if the setting is enabled
+        button.title = appState.showTimerTextInMenuBar ? timeString : ""
+        
+        // Use a monospaced font to prevent shifting
+        let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize + 1, weight: .regular)
+        button.font = font
+        
+        // Always keep the image on the left
+        button.imagePosition = .imageLeft
+        
+        // Set icon color based on timer mode
+        if appState.timerState != .inactive {
+            if appState.timerState == .breakActive {
+                // Green icon for break time
+                let greenIcon = NSImage(
                     systemSymbolName: "timer",
                     accessibilityDescription: "Timer"
                 )?.withSymbolConfiguration(
-                    NSImage.SymbolConfiguration(paletteColors: [.secondaryLabelColor])
+                    NSImage.SymbolConfiguration(paletteColors: [.systemGreen])
                 )
-                button.image = grayIcon
+                button.image = greenIcon
+            } else {
+                // Default icon for focus time
+                button.image = NSImage(
+                    systemSymbolName: "timer",
+                    accessibilityDescription: "Timer"
+                )
             }
+        } else {
+            // Gray icon when timer is not active
+            let grayIcon = NSImage(
+                systemSymbolName: "timer",
+                accessibilityDescription: "Timer"
+            )?.withSymbolConfiguration(
+                NSImage.SymbolConfiguration(paletteColors: [.secondaryLabelColor])
+            )
+            button.image = grayIcon
         }
     }
     
@@ -211,7 +236,7 @@ class StatusBarController {
         if popover.isShown {
             popover.performClose(sender)
         } else {
-            if let button = statusItem.button {
+            if let button = statusItem?.button {
                 // Use direct presentation without animation context
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
                 
@@ -268,6 +293,43 @@ class StatusBarController {
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
         let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(appVersion) (\(buildNumber))"
+    }
+    
+    private func setupAppearanceModeObserver() {
+        // Listen for appearance mode changes
+        appearanceObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("AppearanceModeDidChange"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.updatePopoverAppearance()
+        }
+    }
+    
+    private func updatePopoverAppearance() {
+        DispatchQueue.main.async {
+            switch self.appState.appearanceMode {
+            case .light:
+                self.popover.appearance = NSAppearance(named: .aqua)
+            case .dark:
+                self.popover.appearance = NSAppearance(named: .darkAqua)
+            case .system:
+                self.popover.appearance = nil // Use system default
+            }
+        }
+    }
+    
+    // MARK: - Menu Bar Text Visibility Handling
+    
+    private func setupMenuBarTextVisibilityObserver() {
+        // Listen for menu bar text visibility changes
+        menuBarTextVisibilityObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("MenuBarTextVisibilityDidChange"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.updateMenuBarTimer(timerValue: self?.appState.currentTimerValue ?? 0)
+        }
     }
 }
 

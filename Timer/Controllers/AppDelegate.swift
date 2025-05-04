@@ -17,6 +17,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         
         // Immediately create the status bar controller when the app launches
         statusBarController = StatusBarController()
+        
+        // Set up appearance mode observer
+        setupAppearanceModeObserver()
+        
+        // Apply initial appearance mode
+        applyCurrentAppearanceMode()
     }
     
     // Request permission to send notifications
@@ -39,5 +45,36 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         // Show the notification even when the app is in the foreground
         completionHandler([.banner, .sound])
+    }
+    
+    // MARK: - Appearance Mode Handling
+    
+    private func setupAppearanceModeObserver() {
+        // Listen for appearance mode changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppearanceModeChange),
+            name: NSNotification.Name("AppearanceModeDidChange"),
+            object: nil
+        )
+    }
+    
+    @objc private func handleAppearanceModeChange() {
+        applyCurrentAppearanceMode()
+    }
+    
+    private func applyCurrentAppearanceMode() {
+        let appState = (NSApplication.shared.delegate as? AppDelegate)?.statusBarController?.appState
+        
+        DispatchQueue.main.async {
+            switch appState?.appearanceMode {
+            case .light:
+                NSApp.appearance = NSAppearance(named: .aqua)
+            case .dark:
+                NSApp.appearance = NSAppearance(named: .darkAqua)
+            case .system, .none, nil:
+                NSApp.appearance = nil // Use system default
+            }
+        }
     }
 }

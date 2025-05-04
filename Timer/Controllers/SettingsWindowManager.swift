@@ -12,9 +12,20 @@ import AppKit
 class SettingsWindowManager {
     private var window: NSWindow?
     private var appState: AppState
+    private var appearanceObserver: NSObjectProtocol?
     
     init(appState: AppState) {
         self.appState = appState
+        
+        // Set up appearance mode observer
+        setupAppearanceModeObserver()
+    }
+    
+    deinit {
+        // Remove the appearance observer when this manager is deallocated
+        if let observer = appearanceObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
     
     func showSettings() {
@@ -64,5 +75,36 @@ class SettingsWindowManager {
         
         // Store the window
         self.window = window
+        
+        // Apply current appearance mode
+        updateWindowAppearance()
+    }
+    
+    // MARK: - Appearance Mode Handling
+    
+    private func setupAppearanceModeObserver() {
+        // Listen for appearance mode changes
+        appearanceObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("AppearanceModeDidChange"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.updateWindowAppearance()
+        }
+    }
+    
+    private func updateWindowAppearance() {
+        guard let window = window else { return }
+        
+        DispatchQueue.main.async {
+            switch self.appState.appearanceMode {
+            case .light:
+                window.appearance = NSAppearance(named: .aqua)
+            case .dark:
+                window.appearance = NSAppearance(named: .darkAqua)
+            case .system:
+                window.appearance = nil // Use system default
+            }
+        }
     }
 }

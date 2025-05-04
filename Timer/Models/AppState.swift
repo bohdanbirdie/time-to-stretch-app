@@ -8,12 +8,34 @@
 import Foundation
 import Combine
 import SwiftUI
+import ServiceManagement
 
 // Timer state enum to represent the different states of the timer
 enum TimerState {
     case inactive
     case focusActive
     case breakActive
+}
+
+// Appearance mode enum - simplified to match SwiftUI's ColorScheme
+enum AppearanceMode: String, CaseIterable, Identifiable, Codable {
+    case system = "System"
+    case light = "Light"
+    case dark = "Dark"
+    
+    var id: String { self.rawValue }
+    
+    // Convert to SwiftUI's ColorScheme
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system:
+            return nil // nil means follow system
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        }
+    }
 }
 
 // App state class to provide access to StatusBarController from SwiftUI views
@@ -34,6 +56,31 @@ class AppState: ObservableObject {
     // Timer instance (needs to be optional since it's a class)
     @Published var timer: Timer? = nil
     
+    // App appearance settings - simplified
+    @Published var appearanceMode: AppearanceMode = .system {
+        didSet {
+            saveAppearanceMode()
+            // Post notification for appearance mode change
+            NotificationCenter.default.post(name: NSNotification.Name("AppearanceModeDidChange"), object: nil)
+        }
+    }
+    
+    // UI Settings
+    @Published var showTimerTextInMenuBar: Bool = true {
+        didSet {
+            saveShowTimerTextInMenuBar()
+            // Post notification for menu bar visibility change
+            NotificationCenter.default.post(name: NSNotification.Name("MenuBarTextVisibilityDidChange"), object: nil)
+        }
+    }
+    
+    // Launch at startup setting
+    @Published var launchAtStartup: Bool = false {
+        didSet {
+            updateLoginItemStatus()
+        }
+    }
+    
     // Pending settings change that needs confirmation
     @Published var pendingSettingsChange: PendingSettingsChange?
     
@@ -45,6 +92,9 @@ class AppState: ObservableObject {
     
     // UserDefaults keys
     private let timerSettingsKey = "timerSettings"
+    private let appearanceModeKey = "appearanceMode"
+    private let showTimerTextInMenuBarKey = "showTimerTextInMenuBar"
+    private let launchAtStartupKey = "launchAtStartup"
     
     init() {
         // Load settings from UserDefaults or use defaults
@@ -60,6 +110,15 @@ class AppState: ObservableObject {
         
         // Send initial timer value update
         timerUpdatePublisher.send(focusRemainingTime)
+        
+        // Load appearance mode
+        loadAppearanceMode()
+        
+        // Load show timer text in menu bar setting
+        loadShowTimerTextInMenuBar()
+        
+        // Load launch at startup setting
+        loadLaunchAtStartup()
     }
     
     // Initialize timer durations based on settings
@@ -136,6 +195,64 @@ class AppState: ObservableObject {
         // Save settings to UserDefaults
         if let encodedData = try? JSONEncoder().encode(timerSettings) {
             UserDefaults.standard.set(encodedData, forKey: timerSettingsKey)
+        }
+    }
+    
+    // Load appearance mode from UserDefaults
+    private func loadAppearanceMode() {
+        if let savedModeString = UserDefaults.standard.string(forKey: appearanceModeKey),
+           let savedMode = AppearanceMode(rawValue: savedModeString) {
+            self.appearanceMode = savedMode
+        }
+    }
+    
+    // Save appearance mode to UserDefaults
+    func saveAppearanceMode() {
+        UserDefaults.standard.set(appearanceMode.rawValue, forKey: appearanceModeKey)
+    }
+    
+    // Load show timer text in menu bar setting from UserDefaults
+    private func loadShowTimerTextInMenuBar() {
+        // Default is true if not found
+        self.showTimerTextInMenuBar = UserDefaults.standard.object(forKey: showTimerTextInMenuBarKey) as? Bool ?? true
+    }
+    
+    // Save show timer text in menu bar setting to UserDefaults
+    private func saveShowTimerTextInMenuBar() {
+        UserDefaults.standard.set(showTimerTextInMenuBar, forKey: showTimerTextInMenuBarKey)
+    }
+    
+    // Load launch at startup setting
+    private func loadLaunchAtStartup() {
+        self.launchAtStartup = UserDefaults.standard.bool(forKey: launchAtStartupKey)
+        
+        // Make sure the actual login item status matches our saved preference
+        updateLoginItemStatus()
+    }
+    
+    // Update login item status based on the launchAtStartup setting
+    private func updateLoginItemStatus() {
+        // Save the preference
+        UserDefaults.standard.set(launchAtStartup, forKey: launchAtStartupKey)
+        
+        // Only supported on macOS 13 (Ventura) and later
+        if #available(macOS 13.0, *) {
+            do {
+                if launchAtStartup {
+                    // Register the app as a login item
+                    try SMAppService.mainApp.register()
+                } else {
+                    // Unregister the app as a login item if it's registered
+                    if SMAppService.mainApp.status == .enabled {
+                        try SMAppService.mainApp.unregister()
+                    }
+                }
+            } catch {
+                print("Failed to update login item status: \(error)")
+            }
+        } else {
+            // For older macOS versions, just inform in debug console
+            print("Launch at startup is only supported on macOS 13 and later")
         }
     }
 }
