@@ -57,6 +57,9 @@ class AppState: ObservableObject {
         
         // Initialize timer durations from settings
         updateTimerDurations()
+        
+        // Send initial timer value update
+        timerUpdatePublisher.send(focusRemainingTime)
     }
     
     // Initialize timer durations based on settings
@@ -66,6 +69,9 @@ class AppState: ObservableObject {
         
         // Reset remaining times to full duration
         resetTimerValues()
+        
+        // Update the current timer value
+        currentTimerValue = focusRemainingTime
     }
     
     // Reset timer values to full duration

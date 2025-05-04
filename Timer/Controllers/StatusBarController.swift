@@ -50,6 +50,9 @@ class StatusBarController {
         
         // Subscribe to timer updates
         setupTimerUpdates()
+        
+        // Update the menu bar with the initial timer value
+        updateMenuBarTimer(timerValue: appState.currentTimerValue)
     }
     
     private func setupContextMenu() {
