@@ -89,6 +89,15 @@ class StatusBarController {
         settingsItem.target = self
         menu.addItem(settingsItem)
         
+        // Add Version info item
+        let versionInfo = getVersionInfo()
+        let versionItem = NSMenuItem(
+            title: "Version: \(versionInfo)",
+            action: nil,
+            keyEquivalent: ""
+        )
+        menu.addItem(versionItem)
+        
         // Add separator
         menu.addItem(NSMenuItem.separator())
         
@@ -252,6 +261,13 @@ class StatusBarController {
     
     @objc func openSettingsFromMenu() {
         openSettings()
+    }
+    
+    // Helper method to get version and build information
+    private func getVersionInfo() -> String {
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "\(appVersion) (\(buildNumber))"
     }
 }
 
