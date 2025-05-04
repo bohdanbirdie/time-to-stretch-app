@@ -8,7 +8,6 @@
 import SwiftUI
 import AppKit
 
-// A SwiftUI wrapper for a custom NSView that can record keyboard shortcuts
 struct ShortcutRecorder: NSViewRepresentable {
     @Binding var shortcut: KeyboardShortcut
     
@@ -22,7 +21,6 @@ struct ShortcutRecorder: NSViewRepresentable {
     }
 }
 
-// The actual NSView that handles the shortcut recording
 class ShortcutRecorderView: NSView {
     private var shortcutBinding: Binding<KeyboardShortcut>
     private var textField: NSTextField
@@ -31,22 +29,19 @@ class ShortcutRecorderView: NSView {
     init(shortcut: Binding<KeyboardShortcut>) {
         self.shortcutBinding = shortcut
         
-        // Create the text field to display the shortcut
         self.textField = NSTextField()
         textField.isEditable = false
-        textField.isBordered = false // Remove border
-        textField.backgroundColor = .clear // Make background transparent
+        textField.isBordered = false
+        textField.backgroundColor = .clear
         textField.alignment = .center
-        textField.font = NSFont.systemFont(ofSize: NSFont.systemFontSize + 8, weight: .medium) // Much larger font with medium weight
+        textField.font = NSFont.systemFont(ofSize: NSFont.systemFontSize + 8, weight: .medium)
         textField.stringValue = shortcut.wrappedValue.toString()
-        textField.isHidden = true // Hide the text field since we're using SwiftUI Text instead
+        textField.isHidden = true
         
         super.init(frame: NSRect(x: 0, y: 0, width: 120, height: 24))
         
-        // Add the text field to the view
         addSubview(textField)
         
-        // Start in recording mode
         startRecording()
     }
     
@@ -57,33 +52,27 @@ class ShortcutRecorderView: NSView {
     override func layout() {
         super.layout()
         
-        // Center the text field in the view
         let textSize = textField.cell?.cellSize(forBounds: bounds) ?? .zero
         let x = (bounds.width - textSize.width) / 2
         let y = (bounds.height - textSize.height) / 2
         textField.frame = NSRect(x: x, y: y, width: textSize.width, height: textSize.height)
         
-        // If text is too wide, use the full width
         if textSize.width > bounds.width {
             textField.frame = NSRect(x: 0, y: y, width: bounds.width, height: textSize.height)
         }
     }
     
     func updateShortcut(_ shortcut: KeyboardShortcut) {
-        // Make sure we display the full shortcut string
         textField.stringValue = shortcut.toString()
     }
     
     private func startRecording() {
-        // Set recording state
         isRecording = true
         
-        // Update appearance
-        textField.backgroundColor = .clear // Keep transparent
+        textField.backgroundColor = .clear
         textField.stringValue = "Type shortcut..."
-        textField.textColor = NSColor.secondaryLabelColor // Lighter text for placeholder
+        textField.textColor = NSColor.secondaryLabelColor
         
-        // Make this view the first responder to capture key events
         window?.makeFirstResponder(self)
     }
     
@@ -92,28 +81,21 @@ class ShortcutRecorderView: NSView {
     }
     
     override func keyDown(with event: NSEvent) {
-        // Only process if we're recording
         guard isRecording else {
             super.keyDown(with: event)
             return
         }
         
-        // Get the modifiers
         let modifiers = event.modifierFlags.intersection([.command, .control, .option, .shift])
         
-        // Get the character from the event
         var keyCharacter = ""
         
-        // Check if it's a special key
         if let specialKey = [36: "Return", 48: "Tab", 49: "Space", 51: "Delete", 53: "Escape", 123: "←", 124: "→", 125: "↓", 126: "↑"][Int(event.keyCode)] {
             keyCharacter = specialKey
         } else if let characters = event.charactersIgnoringModifiers?.uppercased(), !characters.isEmpty {
-            // Get the character directly from the event - always use it regardless of ASCII status
             keyCharacter = String(characters.first!)
         } else {
-            // Fallback for function keys
             if event.keyCode >= 96 && event.keyCode <= 111 {
-                // Function keys
                 let functionKeyNumber = [
                     96: 5, 97: 6, 98: 7, 99: 3, 100: 8, 101: 9,
                     103: 11, 109: 10, 111: 12, 105: 13, 107: 14, 113: 15,
@@ -131,7 +113,6 @@ class ShortcutRecorderView: NSView {
             }
         }
         
-        // Create the new shortcut with the extracted character
         let newShortcut = KeyboardShortcut(
             keyCode: Int(event.keyCode),
             modifiers: modifiers.rawValue,
@@ -139,15 +120,12 @@ class ShortcutRecorderView: NSView {
             character: keyCharacter
         )
         
-        // Update the binding
         shortcutBinding.wrappedValue = newShortcut
         
-        // Update the display - force refresh by setting the text directly
         textField.stringValue = newShortcut.toString()
-        textField.backgroundColor = .clear // Keep transparent
-        textField.textColor = NSColor.labelColor // Reset to normal text color
+        textField.backgroundColor = .clear
+        textField.textColor = NSColor.labelColor
         
-        // Force the view to update
         self.needsDisplay = true
     }
 }

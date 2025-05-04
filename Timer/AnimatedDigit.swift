@@ -4,7 +4,6 @@
 //
 //  Created by Bohdan Ptyts on 01.05.2025.
 //
-
 import SwiftUI
 
 struct AnimatedDigit: View {

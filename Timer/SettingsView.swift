@@ -11,24 +11,20 @@ struct SettingsView: View {
     @Binding var isPresented: Bool
     @EnvironmentObject var appState: AppState
     
-    // Local state to track settings before saving
     @State private var focusHours: Int = 1
     @State private var focusMinutes: Int = 0
     @State private var breakMinutes: Int = 5
     @State private var breakSeconds: Int = 0
     
-    // Tab selection state
     @State private var selectedTab: String = "App configuration"
     private let tabs = ["App configuration", "Intervals", "Shortcuts", "About"]
     
-    // Initialize state values
     init(isPresented: Binding<Bool>) {
         self._isPresented = isPresented
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            // macOS-style tab bar
             Picker("", selection: $selectedTab) {
                 ForEach(tabs, id: \.self) { tab in
                     Text(tab).tag(tab)
@@ -41,7 +37,6 @@ struct SettingsView: View {
             
             Divider()
             
-            // Content based on selected tab
             ScrollView {
                 if selectedTab == "App configuration" {
                     appConfigurationView
@@ -56,14 +51,12 @@ struct SettingsView: View {
         }
         .frame(width: 500, height: 400)
         .onAppear {
-            // Initialize values with current settings
             let totalFocusMinutes = appState.timerSettings.focusMinutes
             focusHours = totalFocusMinutes / 60
             focusMinutes = totalFocusMinutes % 60
             breakMinutes = appState.timerSettings.breakMinutes
             breakSeconds = appState.timerSettings.breakSeconds
         }
-        // Show confirmation alert when there's a pending settings change
         .sheet(isPresented: Binding<Bool>(
             get: { appState.pendingSettingsChange != nil },
             set: { if !$0 { appState.cancelPendingSettingsChange() } }
@@ -78,7 +71,6 @@ struct SettingsView: View {
                     set: { newValue in
                         self.tempShortcut = newValue
                         
-                        // Update the appropriate shortcut based on which one is being edited
                         switch tempShortcutType {
                         case .playPause:
                             self.appState.shortcutSettings.playPauseShortcut = newValue
@@ -91,7 +83,6 @@ struct SettingsView: View {
         }
     }
     
-    // Confirmation view for settings changes while timer is active
     private var confirmationView: some View {
         VStack(spacing: 20) {
             Text("Reset Timer?")
@@ -104,10 +95,8 @@ struct SettingsView: View {
             
             HStack(spacing: 20) {
                 Button("Cancel") {
-                    // Cancel pending changes
                     appState.cancelPendingSettingsChange()
                     
-                    // Reset UI values to current settings
                     resetUIToCurrentSettings()
                 }
                 .buttonStyle(BorderedButtonStyle())
@@ -122,7 +111,6 @@ struct SettingsView: View {
         .frame(width: 350)
     }
     
-    // Custom labeled toggle component
     private struct LabeledToggle: View {
         let title: String
         @Binding var isOn: Bool
@@ -138,7 +126,6 @@ struct SettingsView: View {
         }
     }
     
-    // Custom labeled picker component
     private struct LabeledPicker<T: Hashable & Identifiable>: View {
         let title: String
         let options: [T]
@@ -196,17 +183,13 @@ struct SettingsView: View {
         .padding(.top, 10)
     }
     
-    // Intervals Tab
     private var intervalsView: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Section header
             Text("Time Intervals")
                 .font(.headline)
                 .padding(.bottom, 4)
             
-            // Time intervals group with background
             VStack(alignment: .leading, spacing: 8) {
-                // Focus Duration
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Focus Duration")
@@ -216,12 +199,11 @@ struct SettingsView: View {
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
-                    .padding(.top, 8) // Align with the text field
+                    .padding(.top, 8) 
                     
                     Spacer()
                     
                     HStack(spacing: 8) {
-                        // Hours
                         VStack(alignment: .center) {
                             TextField("", value: $focusHours, formatter: NumberFormatter())
                                 .frame(width: 50)
@@ -239,7 +221,6 @@ struct SettingsView: View {
                                 .foregroundColor(.secondary)
                         }
                         
-                        // Minutes
                         VStack(alignment: .center) {
                             TextField("", value: $focusMinutes, formatter: NumberFormatter())
                                 .frame(width: 50)
@@ -259,7 +240,6 @@ struct SettingsView: View {
                     }
                 }
                 
-                // Break Duration
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Break Duration")
@@ -269,12 +249,11 @@ struct SettingsView: View {
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
-                    .padding(.top, 8) // Align with the text field
+                    .padding(.top, 8) 
                     
                     Spacer()
                     
                     HStack(spacing: 8) {
-                        // Minutes
                         VStack(alignment: .center) {
                             TextField("", value: $breakMinutes, formatter: NumberFormatter())
                                 .frame(width: 50)
@@ -292,7 +271,6 @@ struct SettingsView: View {
                                 .foregroundColor(.secondary)
                         }
                         
-                        // Seconds
                         VStack(alignment: .center) {
                             TextField("", value: $breakSeconds, formatter: NumberFormatter())
                                 .frame(width: 50)
@@ -316,20 +294,17 @@ struct SettingsView: View {
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(8)
             
-            // Presets section
             Text("Presets")
                 .font(.headline)
                 .padding(.top, 8)
                 .padding(.bottom, 4)
             
-            // Preset buttons in a grid with background
             VStack {
                 LazyVGrid(columns: [
                     GridItem(.flexible()),
                     GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: 12) {
-                    // Create buttons for each preset
                     ForEach(TimerPresets.all, id: \.name) { preset in
                         Button(action: {
                             applyPreset(preset)
@@ -358,23 +333,19 @@ struct SettingsView: View {
         .padding(.top, 10)
     }
     
-    // Shortcuts Tab
     private var shortcutsView: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Section header
             Text("Keyboard Shortcuts")
                 .font(.headline)
                 .padding(.bottom, 4)
             
             VStack(alignment: .leading, spacing: 12) {
-                // Play/Pause shortcut
                 HStack {
                     Text("Play/Pause Timer")
                         .foregroundColor(.primary)
                     
                     Spacer()
                     
-                    // Display current shortcut with button style
                     Button(action: {
                         tempShortcutType = .playPause
                         tempShortcut = appState.shortcutSettings.playPauseShortcut
@@ -393,19 +364,16 @@ struct SettingsView: View {
                     .buttonStyle(PlainButtonStyle())
                     .disabled(!appState.shortcutSettings.playPauseShortcut.isEnabled)
                     
-                    // Toggle to enable/disable
                     Toggle("", isOn: $appState.shortcutSettings.playPauseShortcut.isEnabled)
                         .labelsHidden()
                 }
                 
-                // Reset Timer shortcut
                 HStack {
                     Text("Reset Timer")
                         .foregroundColor(.primary)
                     
                     Spacer()
                     
-                    // Display current shortcut with button style
                     Button(action: {
                         tempShortcutType = .resetTimer
                         tempShortcut = appState.shortcutSettings.resetTimerShortcut
@@ -424,7 +392,6 @@ struct SettingsView: View {
                     .buttonStyle(PlainButtonStyle())
                     .disabled(!appState.shortcutSettings.resetTimerShortcut.isEnabled)
                     
-                    // Toggle to enable/disable
                     Toggle("", isOn: $appState.shortcutSettings.resetTimerShortcut.isEnabled)
                         .labelsHidden()
                 }
@@ -433,7 +400,6 @@ struct SettingsView: View {
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(8)
             
-            // Note about shortcuts
             Text("Note: Changes to shortcuts take effect immediately. You may need to restart the app if shortcuts don't work properly.")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -444,34 +410,28 @@ struct SettingsView: View {
         .padding(.horizontal)
         .padding(.top, 10)
         .onAppear {
-            // Initialize temp shortcut with current value
             tempShortcut = appState.shortcutSettings.playPauseShortcut
         }
     }
     
-    // About Tab
     private var aboutView: some View {
         VStack(spacing: 20) {
             // App Icon
-            if let appIconImage = NSImage(named: NSImage.applicationIconName) {
-                Image(nsImage: appIconImage)
+            Image("AppIcon")
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
                     .frame(width: 128, height: 128)
+                .cornerRadius(16)
                     .padding(.top, 20)
-            }
             
             // App Name
             Text("Time to stretch")
                 .font(.title)
                 .fontWeight(.bold)
             
-            // Version
             Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"))")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            // Links
             VStack(spacing: 12) {
                 Link("GitHub Repository", destination: URL(string: "https://github.com/bohdanbirdie/time-to-stretch-app")!)
                     .buttonStyle(LinkButtonStyle())
@@ -487,7 +447,6 @@ struct SettingsView: View {
         .padding(.horizontal)
     }
     
-    // Custom link button style
     private struct LinkButtonStyle: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
@@ -500,51 +459,39 @@ struct SettingsView: View {
         }
     }
     
-    // State for shortcut recorder modal
     @State private var showShortcutRecorder = false
     @State private var tempShortcut = KeyboardShortcut(keyCode: 35, modifiers: NSEvent.ModifierFlags.command.rawValue | NSEvent.ModifierFlags.control.rawValue)
     @State private var tempShortcutType: ShortcutType = .playPause
     
-    // Enum to track which shortcut is being edited
     private enum ShortcutType {
         case playPause
         case resetTimer
     }
     
-    // Apply settings immediately
     private func applySettings() {
-        // Calculate total focus minutes
         let totalFocusMinutes = (focusHours * 60) + focusMinutes
         
-        // Ensure we have at least 1 minute and at most 8 hours for focus
         let adjustedFocusMinutes = min(8 * 60, max(1, totalFocusMinutes))
         
-        // If the adjusted value is different, update the UI
         if adjustedFocusMinutes != totalFocusMinutes {
-            // Recalculate hours and minutes for UI
             focusHours = adjustedFocusMinutes / 60
             focusMinutes = adjustedFocusMinutes % 60
         }
         
-        // Ensure we have at least 1 minute and at most 1 hour for break
         let adjustedBreakMinutes = min(60, max(1, breakMinutes))
         
-        // If the adjusted value is different, update the UI
         if adjustedBreakMinutes != breakMinutes {
             breakMinutes = adjustedBreakMinutes
-            // If we had to adjust minutes, ensure seconds are 0
             if breakMinutes == 1 && breakSeconds == 0 {
                 breakSeconds = 0
             }
         }
         
-        // Ensure break seconds are valid (0-59)
         let adjustedBreakSeconds = min(59, max(0, breakSeconds))
         if adjustedBreakSeconds != breakSeconds {
             breakSeconds = adjustedBreakSeconds
         }
         
-        // Update settings in AppState
         appState.prepareSettingsUpdate(
             focusMinutes: adjustedFocusMinutes,
             breakMinutes: adjustedBreakMinutes,
@@ -552,7 +499,6 @@ struct SettingsView: View {
         )
     }
     
-    // Apply a preset
     private func applyPreset(_ preset: TimerPreset) {
         focusHours = preset.focusHours
         focusMinutes = preset.focusMinutes
@@ -561,7 +507,6 @@ struct SettingsView: View {
         applySettings()
     }
     
-    // Reset UI values to current settings
     private func resetUIToCurrentSettings() {
         let totalFocusMinutes = appState.timerSettings.focusMinutes
         focusHours = totalFocusMinutes / 60

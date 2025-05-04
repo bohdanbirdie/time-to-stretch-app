@@ -10,13 +10,10 @@ import Combine
 import UserNotifications
 
 struct PopoverView: View {
-    // Environment object to access the AppState
     @EnvironmentObject var appState: AppState
     
-    // Subscription to settings changes
     @State private var settingsSubscription: AnyCancellable?
     
-    // Notification observers
     @State private var notificationObservers: [NSObjectProtocol] = []
     
     var body: some View {
@@ -87,21 +84,16 @@ struct PopoverView: View {
             alignment: .bottom
         )
         .onAppear {
-            // Set up notification observers for timer controls from menu
             setupNotificationObservers()
         }
         .onDisappear {
-            // Ensure timer stops when view disappears
             if appState.timerState != .inactive {
                 stopTimer()
             }
-            
-            // Remove notification observers
             removeNotificationObservers()
         }
     }
     
-    // Timer control functions
     func toggleTimer() {
         appState.timerManager.toggleTimer()
     }
@@ -119,25 +111,17 @@ struct PopoverView: View {
     }
     
     private func updateAppStateTimerValue() {
-        // This is now handled by the TimerManager
     }
     
-    // Helper method to send a notification when focus timer ends
     private func sendFocusEndedNotification() {
-        // This is now handled by the TimerManager
     }
     
-    // Helper method to send a notification when break timer ends
     private func sendBreakEndedNotification() {
-        // This is now handled by the TimerManager
     }
     
-    // Setup notification observers for menu controls
     private func setupNotificationObservers() {
-        // Remove any existing observers first
         removeNotificationObservers()
         
-        // Start timer notification
         let startObserver = NotificationCenter.default.addObserver(
             forName: .startTimer,
             object: nil,
@@ -148,7 +132,6 @@ struct PopoverView: View {
             }
         }
         
-        // Stop timer notification
         let stopObserver = NotificationCenter.default.addObserver(
             forName: .stopTimer,
             object: nil,
@@ -159,7 +142,6 @@ struct PopoverView: View {
             }
         }
         
-        // Reset timer notification
         let resetObserver = NotificationCenter.default.addObserver(
             forName: .resetTimer,
             object: nil,
@@ -168,11 +150,9 @@ struct PopoverView: View {
             self.resetTimers()
         }
         
-        // Store observers for cleanup
         notificationObservers = [startObserver, stopObserver, resetObserver]
     }
     
-    // Remove notification observers
     private func removeNotificationObservers() {
         for observer in notificationObservers {
             NotificationCenter.default.removeObserver(observer)
@@ -182,6 +162,6 @@ struct PopoverView: View {
 }
 
 #Preview {
-    PopoverView()
-        .environmentObject(AppState())
+        PopoverView()
+            .environmentObject(AppState())
 }

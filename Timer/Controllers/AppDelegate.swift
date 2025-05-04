@@ -13,25 +13,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     var globalShortcutManager: GlobalShortcutManager?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Request notification permissions
         requestNotificationPermissions()
         
-        // Immediately create the status bar controller when the app launches
         statusBarController = StatusBarController()
         
-        // Set up appearance mode observer
         setupAppearanceModeObserver()
         
-        // Apply initial appearance mode
         applyCurrentAppearanceMode()
         
-        // Initialize global shortcut manager
         if let appState = statusBarController?.appState {
             globalShortcutManager = GlobalShortcutManager(appState: appState)
         }
     }
     
-    // Request permission to send notifications
     private func requestNotificationPermissions() {
         let center = UNUserNotificationCenter.current()
         center.delegate = self
@@ -45,15 +39,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         }
     }
     
-    // UNUserNotificationCenterDelegate method to handle notifications when app is in foreground
     func userNotificationCenter(_ center: UNUserNotificationCenter, 
                                willPresent notification: UNNotification, 
                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        // Show the notification even when the app is in the foreground
         completionHandler([.banner, .sound])
     }
-    
-    // MARK: - Appearance Mode Handling
     
     private func setupAppearanceModeObserver() {
         // Listen for appearance mode changes
@@ -74,12 +64,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         
         DispatchQueue.main.async {
             switch appState?.appearanceMode {
-            case .light:
-                NSApp.appearance = NSAppearance(named: .aqua)
-            case .dark:
-                NSApp.appearance = NSAppearance(named: .darkAqua)
+        case .light:
+            NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            NSApp.appearance = NSAppearance(named: .darkAqua)
             case .system, .none, nil:
-                NSApp.appearance = nil // Use system default
+                NSApp.appearance = nil
             }
         }
     }
